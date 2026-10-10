@@ -27,6 +27,11 @@ def test_upload_page(client):
     assert response.status_code == 200
     assert b"Upload Your Resume" in response.data
 
+def test_static_assets(client):
+    response = client.get('/static/css/style.css')
+    assert response.status_code == 200
+    assert b'body' in response.data
+
 def test_try_sample_resume(client):
     response = client.get('/try_sample', follow_redirects=True)
     assert response.status_code == 200

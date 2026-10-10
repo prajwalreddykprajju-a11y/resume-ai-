@@ -1,7 +1,7 @@
 import os
 import json
 import werkzeug.utils
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, send_from_directory
 from config import Config
 import database as db
 import resume_parser
@@ -9,8 +9,13 @@ import analyzer
 import report_generator
 from create_sample import create_sample_files
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
 app.config.from_object(Config)
+
+if os.environ.get('VERCEL') != '1':
+    @app.route('/static/<path:filename>')
+    def serve_static(filename):
+        return send_from_directory(os.path.join(Config.BASE_DIR, 'public', 'static'), filename)
 
 # Initialize Database & Sample Files on startup
 with app.app_context():

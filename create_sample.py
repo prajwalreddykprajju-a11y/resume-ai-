@@ -44,11 +44,12 @@ def create_sample_files():
     os.makedirs(sample_dir, exist_ok=True)
     
     txt_path = os.path.join(sample_dir, 'sample_resume.txt')
-    with open(txt_path, 'w', encoding='utf-8') as f:
-        f.write(sample_text)
+    if not os.path.exists(txt_path):
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write(sample_text)
         
     pdf_path = os.path.join(sample_dir, 'sample_resume.pdf')
-    try:
+    if not os.path.exists(pdf_path):
         from reportlab.lib.pagesizes import letter
         from reportlab.pdfgen import canvas
         c = canvas.Canvas(pdf_path, pagesize=letter)
@@ -60,8 +61,6 @@ def create_sample_files():
             c.drawString(40, y, line)
             y -= 14
         c.save()
-    except Exception as e:
-        print("ReportLab PDF sample generation error:", e)
 
 if __name__ == '__main__':
     create_sample_files()
