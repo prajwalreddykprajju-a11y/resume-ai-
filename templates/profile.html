@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-layout">
+  
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="px-3 mb-4">
+      <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Navigation</h6>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('upload') }}" class="sidebar-link">
+          <i class="bi bi-cloud-upload-fill"></i> Upload Resume
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('history') }}" class="sidebar-link">
+          <i class="bi bi-clock-history"></i> Saved Resumes
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('profile') }}" class="sidebar-link active">
+          <i class="bi bi-person-badge-fill"></i> Profile
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Content Body -->
+  <div class="main-content">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h3 class="fw-bold text-navy mb-1">Local Demo Student Profile</h3>
+        <p class="text-muted mb-0">Default profile settings for college presentation and testing.</p>
+      </div>
+      <span class="badge bg-info-subtle text-info fw-bold px-3 py-2 rounded-pill">
+        <i class="bi bi-person-check-fill me-1"></i> Local Session Mode
+      </span>
+    </div>
+
+    <div class="saas-card max-w-2xl">
+      <form action="{{ url_for('update_profile') }}" method="POST">
+        
+        <h5 class="fw-bold text-navy mb-3 pb-2 border-bottom">
+          <i class="bi bi-person-fill text-brand-blue me-2"></i> Personal & Academic Details
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-navy">Full Name</label>
+            <input type="text" class="form-control" name="full_name" value="{{ profile.full_name }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-navy">Email Address</label>
+            <input type="email" class="form-control" name="email" value="{{ profile.email }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-navy">Phone Number</label>
+            <input type="text" class="form-control" name="phone" value="{{ profile.phone }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-navy">Graduation Year</label>
+            <input type="text" class="form-control" name="graduation_year" value="{{ profile.graduation_year }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-navy">Degree & Specialization</label>
+            <input type="text" class="form-control" name="degree" value="{{ profile.degree }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-navy">University / Institution</label>
+            <input type="text" class="form-control" name="university" value="{{ profile.university }}">
+          </div>
+        </div>
+
+        <h5 class="fw-bold text-navy mb-3 pb-2 border-bottom">
+          <i class="bi bi-mortarboard-fill text-brand-blue me-2"></i> Four-Year Academic CGPAs
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold">Year 1 CGPA</label>
+            <input type="text" class="form-control" name="cgpa_y1" value="{{ profile.cgpa_y1 }}">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold">Year 2 CGPA</label>
+            <input type="text" class="form-control" name="cgpa_y2" value="{{ profile.cgpa_y2 }}">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold">Year 3 CGPA</label>
+            <input type="text" class="form-control" name="cgpa_y3" value="{{ profile.cgpa_y3 }}">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold">Year 4 CGPA</label>
+            <input type="text" class="form-control" name="cgpa_y4" value="{{ profile.cgpa_y4 }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-bold">Overall CGPA (Scale 10.0)</label>
+            <input type="text" class="form-control" name="overall_cgpa" value="{{ profile.overall_cgpa }}">
+          </div>
+        </div>
+
+        <h5 class="fw-bold text-navy mb-3 pb-2 border-bottom">
+          <i class="bi bi-compass-fill text-brand-blue me-2"></i> Career Preferences
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-navy">Preferred Target Role</label>
+            <input type="text" class="form-control" name="preferred_role" value="{{ profile.preferred_role }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-navy">Skills & Career Interests</label>
+            <input type="text" class="form-control" name="interests" value="{{ profile.interests }}">
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-brand-primary px-4 shadow-sm">
+            <i class="bi bi-check-lg me-1"></i> Save Profile Details
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

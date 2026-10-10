@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 bg-gradient-hero border-bottom">
+  <div class="container py-4">
+    <div class="row align-items-center gy-5">
+      
+      <!-- Left Hero Content -->
+      <div class="col-lg-6">
+        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill mb-3">
+          <i class="bi bi-stars me-1"></i> AI & Career Technology College Project
+        </span>
+        <h1 class="display-4 fw-extrabold text-navy mb-3">
+          Analyze. Improve.<br/><span class="text-brand-blue">Get Career Ready.</span>
+        </h1>
+        <p class="lead text-secondary mb-4">
+          Upload your resume, discover your strengths, identify missing skills, and receive personalized recommendations to build a stronger resume and explore career opportunities.
+        </p>
+        
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{{ url_for('upload') }}" class="btn btn-brand-primary btn-lg px-4 shadow">
+            <i class="bi bi-cloud-arrow-up-fill me-2"></i> Upload Your Resume
+          </a>
+          <button type="button" class="btn btn-brand-outline btn-lg px-4" data-bs-toggle="modal" data-bs-target="#demoModal">
+            <i class="bi bi-play-circle-fill me-2"></i> Watch Demo
+          </button>
+        </div>
+
+        <div class="mt-4 pt-2 d-flex align-items-center gap-4 text-muted small">
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i> 100% Explainable Scoring</div>
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i> PDF & DOCX Support</div>
+          <div><i class="bi bi-check-circle-fill text-success me-1"></i> 4-Year CGPA Tracking</div>
+        </div>
+      </div>
+
+      <!-- Right Dashboard Preview Card (Sample Data) -->
+      <div class="col-lg-6">
+        <div class="saas-card position-relative shadow-lg border-2 border-primary-subtle">
+          <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
+            <div>
+              <span class="badge bg-warning text-dark font-monospace mb-1">SAMPLE PREVIEW</span>
+              <h6 class="mb-0 fw-bold text-navy">Resume Analysis Dashboard</h6>
+            </div>
+            <span class="badge bg-success-subtle text-success fw-bold px-3 py-2 rounded-pill">
+              <i class="bi bi-shield-check me-1"></i> ATS Readiness: 82/100
+            </span>
+          </div>
+
+          <!-- Sample Gauge & Quick Stats -->
+          <div class="row text-center mb-3 g-2">
+            <div class="col-4">
+              <div class="p-2 bg-light rounded-3">
+                <div class="small text-muted">Structure</div>
+                <div class="fw-bold text-success">15/15 pts</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 bg-light rounded-3">
+                <div class="small text-muted">Skills Found</div>
+                <div class="fw-bold text-brand-blue">12 Skills</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 bg-light rounded-3">
+                <div class="small text-muted">Top Match</div>
+                <div class="fw-bold text-navy">Python Dev</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sample Skill Tags -->
+          <div class="mb-3">
+            <div class="small fw-bold text-navy mb-1"><i class="bi bi-tags-fill me-1"></i> Detected Skills:</div>
+            <div>
+              <span class="tag-chip tag-chip-success">Python</span>
+              <span class="tag-chip tag-chip-success">Flask</span>
+              <span class="tag-chip tag-chip-success">SQL</span>
+              <span class="tag-chip tag-chip-success">Pandas</span>
+              <span class="tag-chip tag-chip-success">Git</span>
+              <span class="tag-chip tag-chip-missing">Docker (Not detected)</span>
+            </div>
+          </div>
+
+          <!-- Sample Role Matches & Suggestion -->
+          <div class="p-3 bg-light rounded-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small fw-bold text-navy">Recommended Role Match</span>
+              <span class="small fw-bold text-brand-blue">85% Match</span>
+            </div>
+            <div class="progress mb-2" style="height: 8px;">
+              <div class="progress-bar bg-primary" role="progressbar" style="width: 85%;"></div>
+            </div>
+            <p class="small text-muted mb-0">
+              <i class="bi bi-lightbulb-fill text-warning me-1"></i> <strong>Suggestion:</strong> Add <code>Docker</code> and <code>REST API</code> keywords to boost Python Developer readiness to 95%.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 4 Feature Cards Section -->
+<section id="features" class="py-5 bg-white">
+  <div class="container py-3">
+    <div class="text-center max-w-xl mx-auto mb-5">
+      <h2 class="fw-bold text-navy">Designed for Student Success</h2>
+      <p class="text-muted">Comprehensive AI and career tools to analyze your resume and get you job ready.</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="saas-card saas-card-hover h-100">
+          <div class="step-number bg-primary bg-gradient text-white mb-3">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+          <h5 class="fw-bold text-navy mb-2">ATS-Style Score</h5>
+          <p class="text-muted small">
+            Transparent scoring model across 6 criteria including document structure, technical skills, projects, and CGPA completeness.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="saas-card saas-card-hover h-100">
+          <div class="step-number bg-success bg-gradient text-white mb-3">
+            <i class="bi bi-lightbulb"></i>
+          </div>
+          <h5 class="fw-bold text-navy mb-2">AI Resume Suggestions</h5>
+          <p class="text-muted small">
+            Receive actionable recommendations and sample rewrite suggestions tailored directly to your resume's missing areas.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="saas-card saas-card-hover h-100">
+          <div class="step-number bg-info bg-gradient text-white mb-3">
+            <i class="bi bi-compass"></i>
+          </div>
+          <h5 class="fw-bold text-navy mb-2">Career Guidance</h5>
+          <p class="text-muted small">
+            Discover suitable entry-level job roles matched against your exact skills, academic background, and projects.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="saas-card saas-card-hover h-100">
+          <div class="step-number bg-warning bg-gradient text-white mb-3">
+            <i class="bi bi-diagram-3"></i>
+          </div>
+          <h5 class="fw-bold text-navy mb-2">Skill Gap Analysis</h5>
+          <p class="text-muted small">
+            Select a target role to compare missing keywords and prioritize the top skills needed to land interviews.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how-it-works" class="py-5 bg-gradient-subtle border-top border-bottom">
+  <div class="container py-3">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold text-navy">How ResumeReady.AI Works</h2>
+      <p class="text-muted">Four simple steps from upload to complete career report.</p>
+    </div>
+
+    <div class="row g-4 text-center">
+      <div class="col-md-3">
+        <div class="p-3">
+          <div class="step-number mx-auto mb-3">1</div>
+          <h6 class="fw-bold text-navy">Upload Resume</h6>
+          <p class="small text-muted">Upload your PDF or DOCX file or choose our pre-loaded sample resume.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="p-3">
+          <div class="step-number mx-auto mb-3">2</div>
+          <h6 class="fw-bold text-navy">Extract & Parse</h6>
+          <p class="small text-muted">Backend extracts text, contact info, education, year-wise CGPA, and skills.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="p-3">
+          <div class="step-number mx-auto mb-3">3</div>
+          <h6 class="fw-bold text-navy">Explainable Scoring</h6>
+          <p class="small text-muted">View your ATS-style readiness score with transparent breakdowns & gap analysis.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="p-3">
+          <div class="step-number mx-auto mb-3">4</div>
+          <h6 class="fw-bold text-navy">Improve & Export</h6>
+          <p class="small text-muted">Apply sample rewrites, edit details, and download a complete PDF analysis report.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="py-5 bg-white">
+  <div class="container py-3">
+    <div class="row align-items-center gy-4">
+      <div class="col-lg-6">
+        <h2 class="fw-bold text-navy mb-3">About ResumeReady.AI</h2>
+        <p class="text-secondary">
+          ResumeReady.AI was engineered as a comprehensive college capstone project to address the growing gap between student academic preparation and industry recruitment standards.
+        </p>
+        <p class="text-secondary">
+          Unlike opaque commercial ATS platforms, ResumeReady.AI provides <strong>100% explainable scoring algorithms</strong>, explicit year-wise B.Tech CGPA tracking, real document parsing via PyMuPDF and python-docx, and persistent database storage.
+        </p>
+        <div class="d-flex align-items-center gap-3 mt-4">
+          <a href="{{ url_for('upload') }}" class="btn btn-brand-primary">
+            Try Resume Scanner Now <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+          <a href="{{ url_for('try_sample') }}" class="btn btn-brand-outline">
+            Try Demonstration Sample
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="saas-card bg-light border-0 p-4">
+          <h5 class="fw-bold text-navy mb-3"><i class="bi bi-cpu-fill text-brand-blue me-2"></i> Technology Stack Overview</h5>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><i class="bi bi-check2-square text-success me-2"></i> <strong>Frontend:</strong> HTML5, CSS3, Bootstrap 5, JavaScript, Chart.js</li>
+            <li class="mb-2"><i class="bi bi-check2-square text-success me-2"></i> <strong>Backend:</strong> Python & Flask Web Server</li>
+            <li class="mb-2"><i class="bi bi-check2-square text-success me-2"></i> <strong>Parsing:</strong> PyMuPDF (fitz) & python-docx</li>
+            <li class="mb-2"><i class="bi bi-check2-square text-success me-2"></i> <strong>NLP & Scoring:</strong> scikit-learn TF-IDF & Cosine Similarity</li>
+            <li class="mb-2"><i class="bi bi-check2-square text-success me-2"></i> <strong>Database:</strong> SQLite Relational Storage</li>
+            <li><i class="bi bi-check2-square text-success me-2"></i> <strong>PDF Export:</strong> ReportLab Document Engine</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Interactive Demo Walkthrough Modal -->
+<div class="modal fade" id="demoModal" tabindex="-1" aria-labelledby="demoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0">
+      <div class="modal-header bg-navy text-white">
+        <h5 class="modal-title fw-bold" id="demoModalLabel">
+          <i class="bi bi-play-circle-fill text-brand-blue me-2"></i> ResumeReady.AI — Interactive Demonstration
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="ratio ratio-16x9 bg-dark rounded-3 d-flex align-items-center justify-content-center text-center p-4">
+          <div class="text-white">
+            <i class="bi bi-file-earmark-text-fill text-primary display-3 mb-3"></i>
+            <h4>Live Resume Analysis Pipeline Demo</h4>
+            <p class="text-light small max-w-md mx-auto mb-4">
+              Watch how ResumeReady.AI extracts text from PDF/DOCX files, calculates explainable scores out of 100%, maps 4-year CGPAs, and generates downloadable PDF reports.
+            </p>
+            <a href="{{ url_for('try_sample') }}" class="btn btn-brand-primary btn-lg shadow">
+              <i class="bi bi-lightning-charge-fill me-2"></i> Launch Live Sample Analysis Now
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,305 @@
+/* ResumeReady.AI Modern SaaS Styling */
+
+:root {
+  --navy-primary: #0f172a;
+  --navy-secondary: #1e293b;
+  --blue-brand: #2563eb;
+  --blue-hover: #1d4ed8;
+  --blue-light: #eff6ff;
+  --blue-border: #bfdbfe;
+  --text-main: #334155;
+  --text-muted: #64748b;
+  --green-success: #16a34a;
+  --green-light: #f0fdf4;
+  --coral-danger: #ef4444;
+  --coral-light: #fef2f2;
+  --amber-warning: #d97706;
+  --amber-light: #fffbe6;
+  --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  --card-border-radius: 14px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f8fafc;
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Background Gradients */
+.bg-gradient-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.bg-gradient-subtle {
+  background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+}
+
+/* Headings & Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--navy-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-navy {
+  color: var(--navy-primary) !important;
+}
+
+.text-brand-blue {
+  color: var(--blue-brand) !important;
+}
+
+.text-muted-custom {
+  color: var(--text-muted);
+}
+
+/* Custom Buttons */
+.btn-brand-primary {
+  background-color: var(--blue-brand);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 0.65rem 1.4rem;
+  border: none;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.btn-brand-primary:hover {
+  background-color: var(--blue-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+.btn-brand-outline {
+  background-color: transparent;
+  color: var(--blue-brand);
+  border: 2px solid var(--blue-brand);
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 0.6rem 1.3rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-brand-outline:hover {
+  background-color: var(--blue-light);
+  color: var(--blue-hover);
+}
+
+/* Navigation Bar */
+.navbar-custom {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.8rem 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.navbar-brand-logo {
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: var(--navy-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-brand-logo span {
+  color: var(--blue-brand);
+}
+
+/* SaaS Cards */
+.saas-card {
+  background: #ffffff;
+  border-radius: var(--card-border-radius);
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saas-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+}
+
+/* Sidebar Layout */
+.dashboard-layout {
+  display: flex;
+  min-height: calc(100vh - 70px);
+}
+
+.sidebar {
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 1.5rem 1rem;
+  flex-shrink: 0;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem 1rem;
+  color: var(--text-main);
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+  background-color: var(--blue-light);
+  color: var(--blue-brand);
+  font-weight: 600;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Upload Dropzone */
+.upload-dropzone {
+  border: 2px dashed var(--blue-brand);
+  background-color: var(--blue-light);
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-dropzone:hover, .upload-dropzone.dragover {
+  background-color: #dbeafe;
+  border-color: var(--blue-hover);
+}
+
+/* Score Gauge Box */
+.score-badge-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.score-high {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.score-medium {
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.score-low {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+/* Tag Chips */
+.tag-chip {
+  display: inline-block;
+  background-color: #f1f5f9;
+  color: var(--navy-secondary);
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  margin: 0.2rem;
+  border: 1px solid #e2e8f0;
+}
+
+.tag-chip-success {
+  background-color: var(--green-light);
+  color: var(--green-success);
+  border-color: #bbf7d0;
+}
+
+.tag-chip-missing {
+  background-color: var(--coral-light);
+  color: var(--coral-danger);
+  border-color: #fecaca;
+}
+
+/* Strengths & Improvements Lists */
+.list-strength-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.list-strength-item i {
+  color: var(--green-success);
+  font-size: 1.1rem;
+  margin-top: 2px;
+}
+
+.list-improvement-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.list-improvement-item i {
+  color: var(--coral-danger);
+  font-size: 1.1rem;
+  margin-top: 2px;
+}
+
+/* Sample Rewrite Container */
+.sample-rewrite-box {
+  background-color: var(--blue-light);
+  border-left: 4px solid var(--blue-brand);
+  padding: 0.85rem 1.1rem;
+  border-radius: 0 10px 10px 0;
+  margin-top: 0.5rem;
+  font-style: italic;
+  color: #1e40af;
+  font-size: 0.9rem;
+}
+
+/* Step Indicator */
+.step-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--blue-brand);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 2rem 0;
+  color: var(--text-muted);
+}

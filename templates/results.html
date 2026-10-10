@@ -1,0 +1,612 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-layout">
+  
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="px-3 mb-4">
+      <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Navigation</h6>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('upload') }}" class="sidebar-link">
+          <i class="bi bi-cloud-upload-fill"></i> Upload Resume
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('results', resume_id=data.resume_id) }}" class="sidebar-link active">
+          <i class="bi bi-bar-chart-line-fill"></i> Analysis Results
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('history') }}" class="sidebar-link">
+          <i class="bi bi-clock-history"></i> Saved Resumes
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('profile') }}" class="sidebar-link">
+          <i class="bi bi-person-badge-fill"></i> Profile
+        </a>
+      </li>
+    </ul>
+
+    <div class="mt-5 px-3">
+      <div class="saas-card bg-light border-0 p-3">
+        <div class="small fw-bold text-navy mb-1"><i class="bi bi-download text-brand-blue me-1"></i> PDF Export</div>
+        <p class="small text-muted mb-2">Export clean analysis report for print or submission.</p>
+        <a href="{{ url_for('download_report', resume_id=data.resume_id) }}" class="btn btn-brand-primary btn-sm w-100">
+          <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF Report
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Body -->
+  <div class="main-content">
+    
+    <!-- Top Action Banner -->
+    <div class="saas-card mb-4 bg-gradient-hero border-primary-subtle">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge bg-success text-white px-3 py-1 rounded-pill">
+              <i class="bi bi-check-circle-fill me-1"></i> Analysis Complete
+            </span>
+            <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i> {{ data.uploaded_at[:10] }}</span>
+            {% if data.is_sample %}
+              <span class="badge bg-warning text-dark font-monospace">SAMPLE RESUME</span>
+            {% endif %}
+          </div>
+          <h3 class="fw-bold text-navy mb-0">Analysis Dashboard: {{ data.filename }}</h3>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <a href="{{ url_for('upload') }}" class="btn btn-brand-outline">
+            <i class="bi bi-plus-circle me-1"></i> Analyze Another Resume
+          </a>
+          <a href="{{ url_for('download_report', resume_id=data.resume_id) }}" class="btn btn-brand-primary shadow-sm">
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF Report
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Grid: Score & Preview -->
+    <div class="row g-4 mb-4">
+      
+      <!-- ATS Score Gauge Card -->
+      <div class="col-lg-5">
+        <div class="saas-card h-100 text-center d-flex flex-column justify-content-center p-4">
+          <h6 class="fw-bold text-uppercase text-muted small mb-3">Resume Readiness Score</h6>
+          
+          {% set score = data.analysis.ats_score %}
+          <div class="score-badge-circle mb-3 {% if score >= 75 %}score-high{% elif score >= 60 %}score-medium{% else %}score-low{% endif %}">
+            <span class="display-4 fw-bold mb-0" style="line-height: 1;">{{ score }}</span>
+            <span class="small text-white-50">/ 100</span>
+          </div>
+
+          <h5 class="fw-bold text-navy mb-2">
+            {% if score >= 80 %}Excellent Resume Readiness
+            {% elif score >= 65 %}Good Baseline Resume
+            {% else %}Needs Keyword & Structure Optimization{% endif %}
+          </h5>
+          <p class="small text-muted mb-3 px-2">
+            Target Role: <strong>{{ data.analysis.target_role }}</strong> | 
+            Match Category: <strong class="text-brand-blue">{{ data.analysis.role_match_pct }}% Compatible</strong>
+          </p>
+
+          <div class="alert alert-light border small text-muted text-start mb-0">
+            <i class="bi bi-info-circle-fill text-brand-blue me-1"></i>
+            <strong>Explainability Disclaimer:</strong> This score is our project's weighted estimate across 6 transparent criteria and is not an official score from commercial Applicant Tracking Systems.
+          </div>
+        </div>
+      </div>
+
+      <!-- Uploaded Resume Extracted Text Preview Card -->
+      <div class="col-lg-7">
+        <div class="saas-card h-100 d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-navy mb-0"><i class="bi bi-file-text-fill text-brand-blue me-2"></i> Extracted Document Content</h6>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#textPreviewCollapse">
+              <i class="bi bi-eye me-1"></i> Toggle View Text
+            </button>
+          </div>
+          <div class="p-3 bg-light rounded-3 mb-2 flex-grow-1 overflow-auto" style="max-height: 220px; font-family: monospace; font-size: 0.85rem;">
+            {{ data.extracted.raw_text[:1200] }}{% if data.extracted.raw_text|length > 1200 %}...{% endif %}
+          </div>
+          <div class="collapse mt-2" id="textPreviewCollapse">
+            <div class="card card-body bg-light border-0 small font-monospace overflow-auto" style="max-height: 250px;">
+              {{ data.extracted.raw_text }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Explainable Scoring Breakdown Table -->
+    <div class="saas-card mb-4">
+      <h5 class="fw-bold text-navy mb-3"><i class="bi bi-calculator-fill text-brand-blue me-2"></i> Explainable Scoring Breakdown</h5>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Evaluation Criteria</th>
+              <th class="text-center">Max Weight</th>
+              <th class="text-center">Score Awarded</th>
+              <th>Rationale & Explanation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set bd = data.analysis.scoring_breakdown %}
+            {% set names = {
+              'structure': 'Structure & Readability',
+              'skills': 'Technical & Domain Skills',
+              'education': 'Education & Academic Details',
+              'projects_experience': 'Projects & Practical Experience',
+              'role_keywords': 'Target Role Keyword Match',
+              'achievements': 'Achievements & Quantified Impact'
+            } %}
+            {% for key, cname in names.items() %}
+              {% if key in bd %}
+              <tr>
+                <td class="fw-bold text-navy">{{ cname }}</td>
+                <td class="text-center">{{ bd[key].max }}%</td>
+                <td class="text-center">
+                  <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill">{{ bd[key].score }}%</span>
+                </td>
+                <td class="small text-muted">{{ bd[key].explanation }}</td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Key Information Extracted & Edit Modal Button -->
+    <div class="saas-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-navy mb-0"><i class="bi bi-person-lines-fill text-brand-blue me-2"></i> Key Information Extracted</h5>
+        <button class="btn btn-sm btn-brand-outline" data-bs-toggle="modal" data-bs-target="#editDetailsModal">
+          <i class="bi bi-pencil-square me-1"></i> Edit Details
+        </button>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3">
+            <div class="small text-muted">Full Candidate Name</div>
+            <div class="fw-bold text-navy">{{ data.extracted.full_name }}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3">
+            <div class="small text-muted">Email Address</div>
+            <div class="fw-bold text-navy">{{ data.extracted.email }}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3">
+            <div class="small text-muted">Phone Number</div>
+            <div class="fw-bold text-navy">{{ data.extracted.phone }}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3">
+            <div class="small text-muted">Degree & Specialization</div>
+            <div class="fw-bold text-navy">{{ data.extracted.education_degree }}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3">
+            <div class="small text-muted">University / Institution</div>
+            <div class="fw-bold text-navy">{{ data.extracted.university }}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded-3">
+            <div class="small text-muted">Graduation Year</div>
+            <div class="fw-bold text-navy">{{ data.extracted.graduation_year }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mandatory 4-Year B.Tech CGPA & Education Section -->
+    <div class="saas-card mb-4 border-primary-subtle">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="fw-bold text-navy mb-1"><i class="bi bi-mortarboard-fill text-brand-blue me-2"></i> Four-Year B.Tech CGPA & Academic Performance</h5>
+          <p class="small text-muted mb-0">Year-wise CGPA details tracked separately for college academic review.</p>
+        </div>
+        <button class="btn btn-sm btn-brand-outline" data-bs-toggle="modal" data-bs-target="#editCgpaModal">
+          <i class="bi bi-pencil-square me-1"></i> Update CGPAs
+        </button>
+      </div>
+
+      <div class="row g-3 text-center">
+        <div class="col-6 col-md-2.4">
+          <div class="p-3 bg-light rounded-3 border">
+            <div class="small text-muted">Year 1 CGPA</div>
+            <div class="fs-4 fw-bold {% if data.cgpa.cgpa_y1 != 'Pending' %}text-navy{% else %}text-muted{% endif %}">
+              {{ data.cgpa.cgpa_y1 }}
+            </div>
+            <span class="badge {% if data.cgpa.cgpa_y1 != 'Pending' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %} rounded-pill">
+              {{ data.cgpa.cgpa_status_y1 }}
+            </span>
+          </div>
+        </div>
+        <div class="col-6 col-md-2.4">
+          <div class="p-3 bg-light rounded-3 border">
+            <div class="small text-muted">Year 2 CGPA</div>
+            <div class="fs-4 fw-bold {% if data.cgpa.cgpa_y2 != 'Pending' %}text-navy{% else %}text-muted{% endif %}">
+              {{ data.cgpa.cgpa_y2 }}
+            </div>
+            <span class="badge {% if data.cgpa.cgpa_y2 != 'Pending' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %} rounded-pill">
+              {{ data.cgpa.cgpa_status_y2 }}
+            </span>
+          </div>
+        </div>
+        <div class="col-6 col-md-2.4">
+          <div class="p-3 bg-light rounded-3 border">
+            <div class="small text-muted">Year 3 CGPA</div>
+            <div class="fs-4 fw-bold {% if data.cgpa.cgpa_y3 != 'Pending' %}text-navy{% else %}text-muted{% endif %}">
+              {{ data.cgpa.cgpa_y3 }}
+            </div>
+            <span class="badge {% if data.cgpa.cgpa_y3 != 'Pending' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %} rounded-pill">
+              {{ data.cgpa.cgpa_status_y3 }}
+            </span>
+          </div>
+        </div>
+        <div class="col-6 col-md-2.4">
+          <div class="p-3 bg-light rounded-3 border">
+            <div class="small text-muted">Year 4 CGPA</div>
+            <div class="fs-4 fw-bold {% if data.cgpa.cgpa_y4 != 'Pending' %}text-navy{% else %}text-muted{% endif %}">
+              {{ data.cgpa.cgpa_y4 }}
+            </div>
+            <span class="badge {% if data.cgpa.cgpa_y4 != 'Pending' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %} rounded-pill">
+              {{ data.cgpa.cgpa_status_y4 }}
+            </span>
+          </div>
+        </div>
+        <div class="col-12 col-md-2.4">
+          <div class="p-3 bg-primary-subtle rounded-3 border border-primary">
+            <div class="small text-primary fw-bold">Overall CGPA</div>
+            <div class="fs-3 fw-bold text-brand-blue">
+              {{ data.cgpa.overall_cgpa }}
+            </div>
+            <span class="small text-muted">Scale 10.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strengths & Areas to Improve Grid -->
+    <div class="row g-4 mb-4">
+      
+      <!-- Strengths -->
+      <div class="col-lg-6">
+        <div class="saas-card h-100 border-success-subtle">
+          <h5 class="fw-bold text-navy mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i> Verified Resume Strengths</h5>
+          <div>
+            {% for str_item in data.analysis.strengths %}
+              <div class="list-strength-item">
+                <i class="bi bi-check-lg"></i>
+                <span>{{ str_item }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Areas to Improve -->
+      <div class="col-lg-6">
+        <div class="saas-card h-100 border-danger-subtle">
+          <h5 class="fw-bold text-navy mb-3"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Areas to Improve</h5>
+          <div>
+            {% for imp_item in data.analysis.improvements %}
+              <div class="list-improvement-item">
+                <i class="bi bi-x-lg"></i>
+                <span>{{ imp_item }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Skills Found Chips -->
+    <div class="saas-card mb-4">
+      <h5 class="fw-bold text-navy mb-3"><i class="bi bi-tags-fill text-brand-blue me-2"></i> Skills Detected in Resume</h5>
+      <div>
+        {% if data.extracted.skills %}
+          {% for sk in data.extracted.skills %}
+            <span class="tag-chip tag-chip-success"><i class="bi bi-check2 me-1"></i> {{ sk }}</span>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted mb-0">No technical skills detected automatically.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Missing & Recommended Skills vs Target Role Dropdown -->
+    <div class="saas-card mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+          <h5 class="fw-bold text-navy mb-0"><i class="bi bi-diagram-3-fill text-brand-blue me-2"></i> Target Role Skill Gap Analysis</h5>
+          <p class="small text-muted mb-0">Select a target job position to dynamically compare required keywords.</p>
+        </div>
+        <div style="min-width: 240px;">
+          <select class="form-select" id="targetRoleSelect" data-resume-id="{{ data.resume_id }}">
+            {% for role_name in roles.keys() %}
+              <option value="{{ role_name }}" {% if role_name == data.analysis.target_role %}selected{% endif %}>
+                {{ role_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      {% set rm = data.analysis.role_matches %}
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded-3 h-100">
+            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle me-1"></i> Matched Skills Present</h6>
+            <div>
+              {% for ms in rm.matched_skills %}
+                <span class="tag-chip tag-chip-success">{{ ms }}</span>
+              {% else %}
+                <span class="text-muted small">None matched yet</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded-3 h-100">
+            <h6 class="fw-bold text-danger mb-2"><i class="bi bi-dash-circle me-1"></i> Skills Not Detected in Resume</h6>
+            <div>
+              {% for miss in rm.missing_skills %}
+                <span class="tag-chip tag-chip-missing">{{ miss }}</span>
+              {% else %}
+                <span class="text-success small fw-bold">All required skills present!</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 alert alert-primary-subtle text-primary border-0 small mb-0">
+        <i class="bi bi-lightbulb me-1"></i> <strong>Priority Action:</strong> Focus on acquiring or highlighting <strong>{{ rm.priority_skills|join(', ') }}</strong> to strengthen your profile for {{ rm.target_role }}.
+      </div>
+    </div>
+
+    <!-- Recommended Job Roles Grid -->
+    <div class="saas-card mb-4">
+      <h5 class="fw-bold text-navy mb-3"><i class="bi bi-briefcase-fill text-brand-blue me-2"></i> Recommended Job Opportunities</h5>
+      <div class="row g-3">
+        {% for rec in data.analysis.recommended_roles[:4] %}
+          <div class="col-md-6 col-lg-3">
+            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-navy mb-0">{{ rec.role_name }}</h6>
+                <span class="badge bg-primary text-white">{{ rec.match_pct }}%</span>
+              </div>
+              <p class="small text-muted flex-grow-1 mb-2">{{ rec.explanation[:90] }}...</p>
+              <button class="btn btn-sm btn-outline-primary mt-auto" data-bs-toggle="modal" data-bs-target="#roleModal{{ loop.index }}">
+                View Role Details
+              </button>
+            </div>
+          </div>
+
+          <!-- Role Details Modal -->
+          <div class="modal fade" id="roleModal{{ loop.index }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content rounded-4 border-0">
+                <div class="modal-header">
+                  <h5 class="modal-title fw-bold text-navy">{{ rec.role_name }} — Role Blueprint</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <strong>Match Rating:</strong> <span class="badge bg-primary">{{ rec.match_pct }}% Compatibility</span>
+                  </div>
+                  <div class="mb-3">
+                    <strong>Matched Skills:</strong><br/>
+                    {% for s in rec.matched_skills %}<span class="tag-chip tag-chip-success">{{ s }}</span>{% endfor %}
+                  </div>
+                  <div class="mb-3">
+                    <strong>Missing / Recommended Skills:</strong><br/>
+                    {% for s in rec.missing_skills %}<span class="tag-chip tag-chip-missing">{{ s }}</span>{% endfor %}
+                  </div>
+                  <p class="small text-muted">{{ rec.explanation }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Personalized Improvement Suggestions -->
+    <div class="saas-card mb-4">
+      <h5 class="fw-bold text-navy mb-3"><i class="bi bi-magic text-brand-blue me-2"></i> Personalized AI Suggestions & Sample Rewrites</h5>
+      
+      <div class="row g-3">
+        {% for sug in data.analysis.suggested_rewrites %}
+          <div class="col-12">
+            <div class="p-3 bg-light rounded-3 border">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="fw-bold text-navy mb-0">{{ loop.index }}. {{ sug.title }}</h6>
+                <span class="badge bg-secondary-subtle text-dark small">{{ sug.category }}</span>
+              </div>
+              <p class="small text-muted mb-1"><strong>Issue identified:</strong> {{ sug.issue }}</p>
+              <p class="small text-muted mb-2"><strong>Recommended action:</strong> {{ sug.recommendation }}</p>
+              <div class="sample-rewrite-box">
+                <i class="bi bi-pencil me-1"></i> {{ sug.sample_rewrite }}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Chart Breakdown Card -->
+    <div class="saas-card mb-4">
+      <h5 class="fw-bold text-navy mb-3"><i class="bi bi-pie-chart-fill text-brand-blue me-2"></i> Criteria Performance Chart</h5>
+      <div style="max-height: 320px;">
+        <canvas id="scoreChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Edit Candidate Details Modal -->
+<div class="modal fade" id="editDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-navy">Edit Extracted Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('edit_details', resume_id=data.resume_id) }}" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Full Name</label>
+            <input type="text" class="form-control" name="full_name" value="{{ data.extracted.full_name }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Email Address</label>
+            <input type="email" class="form-control" name="email" value="{{ data.extracted.email }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Phone Number</label>
+            <input type="text" class="form-control" name="phone" value="{{ data.extracted.phone }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Degree & Specialization</label>
+            <input type="text" class="form-control" name="education_degree" value="{{ data.extracted.education_degree }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">University</label>
+            <input type="text" class="form-control" name="university" value="{{ data.extracted.university }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Graduation Year</label>
+            <input type="text" class="form-control" name="graduation_year" value="{{ data.extracted.graduation_year }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Skills (comma-separated)</label>
+            <input type="text" class="form-control" name="skills" value="{{ data.extracted.skills|join(', ') }}">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-brand-primary">Save Changes & Recalculate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit CGPA Modal -->
+<div class="modal fade" id="editCgpaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-navy">Update Four-Year B.Tech CGPAs</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('update_cgpa', resume_id=data.resume_id) }}" method="POST">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Year 1 CGPA</label>
+              <input type="text" class="form-control" name="cgpa_y1" value="{{ data.cgpa.cgpa_y1 }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Year 2 CGPA</label>
+              <input type="text" class="form-control" name="cgpa_y2" value="{{ data.cgpa.cgpa_y2 }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Year 3 CGPA</label>
+              <input type="text" class="form-control" name="cgpa_y3" value="{{ data.cgpa.cgpa_y3 }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Year 4 CGPA</label>
+              <input type="text" class="form-control" name="cgpa_y4" value="{{ data.cgpa.cgpa_y4 }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold">Overall Aggregate CGPA</label>
+              <input type="text" class="form-control" name="overall_cgpa" value="{{ data.cgpa.overall_cgpa }}">
+              <div class="form-text text-muted">Future or uncompleted years can be set as 'Pending'.</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-brand-primary">Save Academic Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Chart.js Bar Breakdown Script
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('scoreChart');
+    if (ctx) {
+      const bdData = {{ data.analysis.scoring_breakdown | tojson }};
+      const labels = ['Structure', 'Skills', 'Education', 'Projects/Exp', 'Role Keywords', 'Achievements'];
+      const scores = [
+        bdData.structure ? bdData.structure.score : 0,
+        bdData.skills ? bdData.skills.score : 0,
+        bdData.education ? bdData.education.score : 0,
+        bdData.projects_experience ? bdData.projects_experience.score : 0,
+        bdData.role_keywords ? bdData.role_keywords.score : 0,
+        bdData.achievements ? bdData.achievements.score : 0
+      ];
+      const maxes = [15, 25, 15, 25, 10, 10];
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Awarded Score',
+              data: scores,
+              backgroundColor: '#2563eb',
+              borderRadius: 6
+            },
+            {
+              label: 'Max Criteria Weight',
+              data: maxes,
+              backgroundColor: '#e2e8f0',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, max: 30 }
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

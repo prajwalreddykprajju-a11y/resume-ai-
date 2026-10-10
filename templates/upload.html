@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <!-- Upload Header -->
+      <div class="text-center mb-4">
+        <h2 class="fw-bold text-navy">Upload Your Resume</h2>
+        <p class="text-muted">Select your PDF or DOCX file to analyze your ATS score, skills, and target role compatibility.</p>
+      </div>
+
+      <div class="saas-card shadow-sm p-4 mb-4">
+        
+        <form id="uploadForm" action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data">
+          
+          <!-- Target Job Role Selection -->
+          <div class="mb-4">
+            <label for="target_role" class="form-label fw-bold text-navy">
+              <i class="bi bi-briefcase-fill text-brand-blue me-1"></i> Select Target Job Role
+            </label>
+            <select class="form-select form-select-lg rounded-3" id="target_role" name="target_role">
+              <option value="Python Developer" selected>Python Developer</option>
+              <option value="Data Analyst">Data Analyst</option>
+              <option value="AI/ML Intern">AI/ML Intern</option>
+              <option value="Business Analyst">Business Analyst</option>
+              <option value="Junior Data Science Intern">Junior Data Science Intern</option>
+              <option value="Full Stack Developer">Full Stack Developer</option>
+              <option value="DevOps Intern">DevOps Intern</option>
+            </select>
+            <div class="form-text text-muted">Your resume skills will be matched against essential keywords for this position.</div>
+          </div>
+
+          <!-- Drag and Drop Dropzone -->
+          <div class="upload-dropzone mb-4" id="dropzone">
+            <input type="file" id="fileInput" name="file" accept=".pdf,.docx" class="d-none">
+            <i class="bi bi-cloud-arrow-up display-3 text-brand-blue mb-3"></i>
+            <h5 class="fw-bold text-navy">Drag & Drop Your Resume File Here</h5>
+            <p class="text-muted small mb-3">Supports PDF and DOCX files up to 10 MB</p>
+            <button type="button" class="btn btn-brand-outline btn-sm">
+              <i class="bi bi-folder2-open me-1"></i> Choose File
+            </button>
+          </div>
+
+          <!-- Selected File Details Display Card -->
+          <div id="fileInfoCard" class="alert alert-info d-flex align-items-center justify-content-between rounded-3 mb-4 d-none">
+            <div class="d-flex align-items-center gap-3">
+              <i class="bi bi-file-earmark-text-fill fs-3 text-brand-blue"></i>
+              <div>
+                <h6 id="fileNameDisplay" class="mb-0 fw-bold text-navy">filename.pdf</h6>
+                <span id="fileSizeDisplay" class="small text-muted">0.00 MB</span>
+              </div>
+            </div>
+            <button type="button" id="removeFileBtn" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-trash-fill me-1"></i> Remove / Replace
+            </button>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-grid gap-3">
+            <button type="submit" id="analyzeSubmitBtn" class="btn btn-brand-primary btn-lg fw-bold shadow-sm" disabled>
+              <i class="bi bi-cpu-fill me-2"></i> Analyze Resume
+            </button>
+            
+            <div class="text-center">
+              <span class="text-muted small me-2">Don't have a file ready?</span>
+              <a href="{{ url_for('try_sample') }}" class="btn btn-link text-decoration-none fw-semibold p-0">
+                <i class="bi bi-play-circle me-1"></i> Try Pre-loaded Sample Resume
+              </a>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+
+      <!-- Tips & Privacy Notice Grid -->
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="saas-card bg-light border-0 h-100 p-3">
+            <h6 class="fw-bold text-navy mb-2"><i class="bi bi-lightbulb-fill text-warning me-2"></i> Helpful Tips for Better Analysis</h6>
+            <ul class="small text-muted mb-0 ps-3">
+              <li class="mb-1">Use standard text-based PDF or DOCX format.</li>
+              <li class="mb-1">Include clear section headings like Skills, Projects, and Education.</li>
+              <li class="mb-1">Mention B.Tech year-wise CGPA or SGPA details explicitly.</li>
+              <li>Avoid image-only scanned PDFs without readable text.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="saas-card bg-light border-0 h-100 p-3">
+            <h6 class="fw-bold text-navy mb-2"><i class="bi bi-shield-lock-fill text-success me-2"></i> Privacy Notice</h6>
+            <p class="small text-muted mb-0">
+              Uploaded files are processed securely on your local server. We do not transmit or sell personal document data. You can delete your saved resume analyses at any time from the Saved Resumes page.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Processing Loading Spinner Overlay -->
+<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex flex-column align-items-center justify-content-center d-none" style="z-index: 9999;">
+  <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+  <h5 class="fw-bold text-navy">Parsing Document & Calculating ATS Score...</h5>
+  <p class="text-muted small">Running explainable keyword matching, CGPA extraction, and role compatibility rules.</p>
+</div>
+{% endblock %}

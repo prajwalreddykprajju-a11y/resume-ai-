@@ -1,0 +1,67 @@
+import os
+
+sample_text = """Rohan Sharma
+Email: rohan.sharma2026@gmail.com | Phone: +91 98765 43210
+GitHub: https://github.com/rohansharma-dev | LinkedIn: https://linkedin.com/in/rohansharma2026
+Location: Hyderabad, Telangana, India
+
+EDUCATION
+State Technological University, Hyderabad
+Bachelor of Technology (B.Tech) in Computer Science & Engineering
+Graduation Year: 2026
+Year 1 CGPA: 8.2 | Year 2 CGPA: 8.5 | Year 3 CGPA: Pending | Year 4 CGPA: Pending
+Overall CGPA: 8.35 / 10.0
+
+TECHNICAL SKILLS
+Programming Languages: Python, Java, SQL, C++, HTML, CSS, JavaScript
+Frameworks & Libraries: Flask, Django, Pandas, NumPy, Scikit-Learn, Bootstrap, REST API
+Databases & Storage: SQLite, MySQL, PostgreSQL
+Tools & Technologies: Git, GitHub, Postman, VSCode, Jupyter Notebook, Linux
+
+PROJECTS
+1. ResumeReady.AI — Automated Resume Parsing & Career Analysis Platform
+   • Engineered a full-stack Python Flask web application to parse PDF/DOCX resumes using PyMuPDF.
+   • Implemented explainable ATS-style scoring algorithms based on 6 weighted criteria, yielding transparent score breakdowns.
+   • Integrated role-based skill gap analysis comparing candidate profiles against entry-level job descriptions.
+
+2. Student Performance Analytics & Prediction Dashboard
+   • Built an exploratory data analysis dashboard using Pandas, NumPy, and Matplotlib to visualize student semester marks.
+   • Trained a Scikit-Learn Machine Learning regression model achieving 88% accuracy in predicting final GPA.
+
+INTERNSHIPS & EXPERIENCE
+Python Developer Intern — TechPulse Software Solutions (June 2025 - August 2025)
+   • Developed 12+ RESTful API endpoints using Flask and SQLite for internal data management.
+   • Optimized SQL database queries, reducing average API response times by 20%.
+
+CERTIFICATIONS & ACHIEVEMENTS
+   • AWS Certified Cloud Practitioner (2025)
+   • Python for Data Science and Machine Learning — Coursera / NPTEL (2024)
+   • 1st Place Winner — University Hackathon for AI & Web Innovation (2025)
+"""
+
+def create_sample_files():
+    sample_dir = os.path.join(os.path.dirname(__file__), 'sample_data')
+    os.makedirs(sample_dir, exist_ok=True)
+    
+    txt_path = os.path.join(sample_dir, 'sample_resume.txt')
+    with open(txt_path, 'w', encoding='utf-8') as f:
+        f.write(sample_text)
+        
+    pdf_path = os.path.join(sample_dir, 'sample_resume.pdf')
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+        c = canvas.Canvas(pdf_path, pagesize=letter)
+        y = 750
+        for line in sample_text.split('\n'):
+            if y < 40:
+                c.showPage()
+                y = 750
+            c.drawString(40, y, line)
+            y -= 14
+        c.save()
+    except Exception as e:
+        print("ReportLab PDF sample generation error:", e)
+
+if __name__ == '__main__':
+    create_sample_files()

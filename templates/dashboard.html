@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-layout">
+  
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="px-3 mb-4">
+      <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Navigation</h6>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link active">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('upload') }}" class="sidebar-link">
+          <i class="bi bi-cloud-upload-fill"></i> Upload Resume
+        </a>
+      </li>
+      <li>
+        {% if latest %}
+          <a href="{{ url_for('results', resume_id=latest.resume_id) }}" class="sidebar-link">
+            <i class="bi bi-bar-chart-line-fill"></i> Analysis Results
+          </a>
+        {% else %}
+          <a href="{{ url_for('upload') }}" class="sidebar-link">
+            <i class="bi bi-bar-chart-line-fill"></i> Analysis Results
+          </a>
+        {% endif %}
+      </li>
+      <li>
+        <a href="{{ url_for('history') }}" class="sidebar-link">
+          <i class="bi bi-clock-history"></i> Saved Resumes
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('profile') }}" class="sidebar-link">
+          <i class="bi bi-person-badge-fill"></i> Profile
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Content Body -->
+  <div class="main-content">
+    
+    <!-- Top Greeting Banner -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+      <div>
+        <h3 class="fw-bold text-navy mb-1">Career & Resume Dashboard</h3>
+        <p class="text-muted mb-0">Overview of your latest resume scan, skills spectrum, and history.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('upload') }}" class="btn btn-brand-primary shadow-sm">
+          <i class="bi bi-upload me-1"></i> Upload New Resume
+        </a>
+        <a href="{{ url_for('try_sample') }}" class="btn btn-brand-outline">
+          <i class="bi bi-play-circle me-1"></i> Try Sample Resume
+        </a>
+      </div>
+    </div>
+
+    {% if latest %}
+      
+      <!-- Metrics Overview Row -->
+      <div class="row g-4 mb-4">
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="saas-card p-3 border-start border-4 border-primary h-100">
+            <div class="small text-muted mb-1">Latest ATS Score</div>
+            <div class="d-flex align-items-baseline gap-2">
+              <span class="display-5 fw-bold text-brand-blue">{{ latest.analysis.ats_score }}</span>
+              <span class="text-muted small">/ 100</span>
+            </div>
+            <div class="small text-success mt-2"><i class="bi bi-check-circle-fill me-1"></i> {{ latest.analysis.target_role }}</div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="saas-card p-3 border-start border-4 border-success h-100">
+            <div class="small text-muted mb-1">Skills Detected</div>
+            <div class="display-5 fw-bold text-navy">{{ latest.extracted.skills|length }}</div>
+            <div class="small text-muted mt-2">Verified in document</div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="saas-card p-3 border-start border-4 border-warning h-100">
+            <div class="small text-muted mb-1">Improvement Actions</div>
+            <div class="display-5 fw-bold text-navy">{{ latest.analysis.suggested_rewrites|length }}</div>
+            <div class="small text-muted mt-2">Personalized rewrites</div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="saas-card p-3 border-start border-4 border-info h-100">
+            <div class="small text-muted mb-1">Top Role Recommendation</div>
+            <div class="fs-5 fw-bold text-navy text-truncate mb-1">
+              {% if latest.analysis.recommended_roles %}{{ latest.analysis.recommended_roles[0].role_name }}{% else %}Python Developer{% endif %}
+            </div>
+            <span class="badge bg-info-subtle text-info fw-bold">
+              {% if latest.analysis.recommended_roles %}{{ latest.analysis.recommended_roles[0].match_pct }}% Match{% else %}85% Match{% endif %}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Action Card for Latest Resume -->
+      <div class="saas-card mb-4 bg-gradient-hero border-primary-subtle">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div>
+            <span class="badge bg-primary text-white mb-2">LATEST SCAN RECORD</span>
+            <h5 class="fw-bold text-navy mb-1">{{ latest.filename }}</h5>
+            <p class="small text-muted mb-0">Scanned on {{ latest.uploaded_at }} | Target Role: <strong>{{ latest.analysis.target_role }}</strong></p>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('results', resume_id=latest.resume_id) }}" class="btn btn-brand-primary">
+              <i class="bi bi-eye-fill me-1"></i> Reopen Full Analysis
+            </a>
+            <a href="{{ url_for('download_report', resume_id=latest.resume_id) }}" class="btn btn-brand-outline">
+              <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF Report
+            </a>
+          </div>
+        </div>
+      </div>
+
+    {% else %}
+      
+      <!-- Empty State Card -->
+      <div class="saas-card text-center py-5 my-4">
+        <i class="bi bi-file-earmark-arrow-up display-1 text-muted mb-3"></i>
+        <h4 class="fw-bold text-navy">No Resumes Analyzed Yet</h4>
+        <p class="text-muted max-w-md mx-auto mb-4">
+          Upload your resume or try our demonstration sample resume to generate your first ATS-style score, 4-year CGPA record, and role compatibility report.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{{ url_for('upload') }}" class="btn btn-brand-primary btn-lg shadow">
+            <i class="bi bi-cloud-arrow-up-fill me-2"></i> Upload Your Resume
+          </a>
+          <a href="{{ url_for('try_sample') }}" class="btn btn-brand-outline btn-lg">
+            <i class="bi bi-play-circle-fill me-2"></i> Try Demonstration Sample
+          </a>
+        </div>
+      </div>
+
+    {% endif %}
+
+    <!-- Recent History Summary Table -->
+    <div class="saas-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-navy mb-0"><i class="bi bi-clock-history text-brand-blue me-2"></i> Recent Analysis History</h5>
+        <a href="{{ url_for('history') }}" class="btn btn-sm btn-link text-decoration-none fw-bold">View All History &rarr;</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Filename</th>
+              <th>Upload Date</th>
+              <th class="text-center">ATS Score</th>
+              <th>Target Role</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in all_resumes[:5] %}
+              <tr>
+                <td class="fw-bold text-navy">
+                  <i class="bi bi-file-earmark-text text-brand-blue me-1"></i> {{ r.filename }}
+                  {% if r.is_sample %}<span class="badge bg-warning text-dark font-monospace ms-1">SAMPLE</span>{% endif %}
+                </td>
+                <td class="small text-muted">{{ r.uploaded_at[:10] }}</td>
+                <td class="text-center">
+                  <span class="badge {% if r.ats_score >= 75 %}bg-success{% elif r.ats_score >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %} rounded-pill px-3 py-1">
+                    {{ r.ats_score }}/100
+                  </span>
+                </td>
+                <td class="small text-muted">{{ r.target_role or 'Python Developer' }}</td>
+                <td class="text-end">
+                  <a href="{{ url_for('results', resume_id=r.id) }}" class="btn btn-sm btn-brand-outline">
+                    View Results
+                  </a>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">No records found in SQLite database.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

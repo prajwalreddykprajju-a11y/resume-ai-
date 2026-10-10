@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-layout">
+  
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="px-3 mb-4">
+      <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Navigation</h6>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('upload') }}" class="sidebar-link">
+          <i class="bi bi-cloud-upload-fill"></i> Upload Resume
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('history') }}" class="sidebar-link active">
+          <i class="bi bi-clock-history"></i> Saved Resumes
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('profile') }}" class="sidebar-link">
+          <i class="bi bi-person-badge-fill"></i> Profile
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Content Body -->
+  <div class="main-content">
+    
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+      <div>
+        <h3 class="fw-bold text-navy mb-1">Saved Resumes & Analysis History</h3>
+        <p class="text-muted mb-0">Manage persistent resume records stored in SQLite database.</p>
+      </div>
+      <a href="{{ url_for('upload') }}" class="btn btn-brand-primary">
+        <i class="bi bi-plus-lg me-1"></i> Upload New Resume
+      </a>
+    </div>
+
+    <div class="saas-card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Filename</th>
+              <th>File Size</th>
+              <th>Analysis Date</th>
+              <th class="text-center">ATS Score</th>
+              <th>Target Role</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in resumes %}
+              <tr>
+                <td class="fw-bold text-muted">#{{ r.id }}</td>
+                <td class="fw-bold text-navy">
+                  <i class="bi bi-file-earmark-pdf-fill text-brand-blue me-1"></i> {{ r.filename }}
+                  {% if r.is_sample %}<span class="badge bg-warning text-dark font-monospace ms-1">SAMPLE</span>{% endif %}
+                </td>
+                <td class="small text-muted">{{ (r.file_size / (1024 * 1024))|round(2) }} MB</td>
+                <td class="small text-muted">{{ r.uploaded_at }}</td>
+                <td class="text-center">
+                  <span class="badge {% if r.ats_score >= 75 %}bg-success{% elif r.ats_score >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %} rounded-pill px-3 py-1 fs-6">
+                    {{ r.ats_score }}/100
+                  </span>
+                </td>
+                <td class="small fw-semibold text-navy">{{ r.target_role or 'Python Developer' }}</td>
+                <td class="text-end">
+                  <div class="btn-group">
+                    <a href="{{ url_for('results', resume_id=r.id) }}" class="btn btn-sm btn-brand-primary">
+                      <i class="bi bi-eye-fill me-1"></i> View Results
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ r.id }}">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Delete Confirmation Modal -->
+              <div class="modal fade" id="deleteModal{{ r.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content rounded-4 border-0">
+                    <div class="modal-header">
+                      <h5 class="modal-title fw-bold text-navy">Confirm Deletion</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p class="mb-0">Are you sure you want to permanently delete <strong>{{ r.filename }}</strong> and its saved analysis records from the database?</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                      <form action="{{ url_for('delete_resume', resume_id=r.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Yes, Delete Record</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox display-4 d-block mb-3"></i>
+                  No saved resume records found. Upload a resume to get started!
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
