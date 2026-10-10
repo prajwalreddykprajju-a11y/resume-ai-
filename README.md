@@ -127,6 +127,14 @@ Vercel serves the CSS and JavaScript from `public/static/`. The app writes its S
 
 ---
 
+## 🚀 Deploying to Render
+
+This repository includes a `render.yaml` Blueprint. In Render, create a **New Blueprint Instance** and connect this GitHub repository. Render will install `requirements.txt`, run the Flask app with Gunicorn, and generate a `SECRET_KEY` for the service automatically. Once deployment finishes, open the service's `onrender.com` URL.
+
+The included free service uses its local filesystem for SQLite data and uploaded files. That filesystem is temporary, so data may be lost when the service restarts or redeploys. For persistent production data, use a hosted database and object storage; a persistent disk is another option for a single Render instance on a plan that supports disks.
+
+---
+
 ## 🧪 Running Automated Unit & Integration Tests
 
 Run the complete test suite with `pytest`:
