@@ -1,13 +1,20 @@
 import os
 import json
 import werkzeug.utils
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, send_from_directory, session
 from config import Config
 import database as db
 import resume_parser
 import analyzer
 import report_generator
 from create_sample import create_sample_files
+import secrets
+
+def get_visitor_id():
+    if 'visitor_id' not in session:
+        session['visitor_id'] = secrets.token_urlsafe(32)
+        session.permanent = True
+    return session['visitor_id']
 
 app = Flask(__name__, static_folder=None)
 app.config.from_object(Config)
@@ -31,14 +38,23 @@ def index():
 
 @app.route('/dashboard')
 def dashboard():
-    all_resumes = db.get_all_saved_resumes()
+    visitor_id = get_visitor_id()
+
+    all_resumes = db.get_all_saved_resumes(visitor_id)
     latest_resume = None
+
     if all_resumes:
-        latest_analysis = db.get_full_analysis(all_resumes[0]['id'])
+        latest_analysis = db.get_full_analysis(
+            all_resumes[0]['id'], visitor_id
+        )
         if latest_analysis:
             latest_resume = latest_analysis
 
-    return render_template('dashboard.html', all_resumes=all_resumes, latest=latest_resume)
+    return render_template(
+        'dashboard.html',
+        all_resumes=all_resumes,
+        latest=latest_resume
+    )
 
 @app.route('/upload')
 def upload():
@@ -59,20 +75,27 @@ def analyze():
             flash(parsed_data['message'], 'danger')
             return redirect(url_for('upload'))
 
-        resume_id = db.save_resume_record("sample_resume.pdf", sample_pdf, "pdf", os.path.getsize(sample_pdf), is_sample=1)
-        db.save_extracted_info(resume_id, parsed_data)
-        
+        resume_id = db.save_resume_record(
+        "sample_resume.pdf",
+        sample_pdf,
+        "pdf",
+        os.path.getsize(sample_pdf),
+        get_visitor_id(),
+        is_sample=1
+    )
+        db.save_extracted_info(resume_id, parsed_data, get_visitor_id())
+            
         cgpa_data = {
-            'cgpa_y1': parsed_data.get('cgpa_y1', '8.2'),
-            'cgpa_y2': parsed_data.get('cgpa_y2', '8.5'),
-            'cgpa_y3': parsed_data.get('cgpa_y3', 'Pending'),
-            'cgpa_y4': parsed_data.get('cgpa_y4', 'Pending'),
-            'overall_cgpa': parsed_data.get('overall_cgpa', '8.35')
-        }
-        db.save_education_cgpa(resume_id, cgpa_data)
+                'cgpa_y1': parsed_data.get('cgpa_y1', '8.2'),
+                'cgpa_y2': parsed_data.get('cgpa_y2', '8.5'),
+                'cgpa_y3': parsed_data.get('cgpa_y3', 'Pending'),
+                'cgpa_y4': parsed_data.get('cgpa_y4', 'Pending'),
+                'overall_cgpa': parsed_data.get('overall_cgpa', '8.35')
+            }
+        db.save_education_cgpa(resume_id, cgpa_data, get_visitor_id())
 
         analysis = analyzer.analyze_resume_full(parsed_data, cgpa_data, target_role)
-        db.save_analysis_result(resume_id, analysis)
+        db.save_analysis_result(resume_id, analysis, get_visitor_id())
 
         flash("Sample resume analyzed successfully!", "success")
         return redirect(url_for('results', resume_id=resume_id))
@@ -102,8 +125,8 @@ def analyze():
         flash(parsed_data['message'], 'danger')
         return redirect(url_for('upload'))
 
-    resume_id = db.save_resume_record(filename, filepath, file_type, file_size, is_sample=0)
-    db.save_extracted_info(resume_id, parsed_data)
+    resume_id = db.save_resume_record(filename, filepath, file_type, file_size, get_visitor_id(), is_sample=0)
+    db.save_extracted_info(resume_id, parsed_data, get_visitor_id())
 
     cgpa_data = {
         'cgpa_y1': parsed_data.get('cgpa_y1', 'Pending'),
@@ -112,10 +135,10 @@ def analyze():
         'cgpa_y4': parsed_data.get('cgpa_y4', 'Pending'),
         'overall_cgpa': parsed_data.get('overall_cgpa', 'Not calculated')
     }
-    db.save_education_cgpa(resume_id, cgpa_data)
+    db.save_education_cgpa(resume_id, cgpa_data, get_visitor_id())
 
     analysis = analyzer.analyze_resume_full(parsed_data, cgpa_data, target_role)
-    db.save_analysis_result(resume_id, analysis)
+    db.save_analysis_result(resume_id, analysis, get_visitor_id())
 
     flash("Resume uploaded and analyzed successfully!", "success")
     return redirect(url_for('results', resume_id=resume_id))
@@ -127,8 +150,15 @@ def try_sample():
         create_sample_files()
     
     parsed_data = resume_parser.parse_resume(sample_pdf, 'pdf')
-    resume_id = db.save_resume_record("sample_resume.pdf", sample_pdf, "pdf", os.path.getsize(sample_pdf), is_sample=1)
-    db.save_extracted_info(resume_id, parsed_data)
+    resume_id = db.save_resume_record(
+    "sample_resume.pdf",
+    sample_pdf,
+    "pdf",
+    os.path.getsize(sample_pdf),
+    get_visitor_id(),
+    is_sample=1
+)
+    db.save_extracted_info(resume_id, parsed_data, get_visitor_id())
     
     cgpa_data = {
         'cgpa_y1': parsed_data.get('cgpa_y1', '8.2'),
@@ -137,17 +167,18 @@ def try_sample():
         'cgpa_y4': parsed_data.get('cgpa_y4', 'Pending'),
         'overall_cgpa': parsed_data.get('overall_cgpa', '8.35')
     }
-    db.save_education_cgpa(resume_id, cgpa_data)
+    db.save_education_cgpa(resume_id, cgpa_data, get_visitor_id())
 
     analysis = analyzer.analyze_resume_full(parsed_data, cgpa_data, "Python Developer")
-    db.save_analysis_result(resume_id, analysis)
+    db.save_analysis_result(resume_id, analysis, get_visitor_id())
 
     flash("Demonstration Sample Resume Analyzed Successfully!", "success")
     return redirect(url_for('results', resume_id=resume_id))
 
 @app.route('/results/<int:resume_id>')
 def results(resume_id):
-    full_data = db.get_full_analysis(resume_id)
+    visitor_id = get_visitor_id()
+    full_data = db.get_full_analysis(resume_id, visitor_id)
     if not full_data:
         flash("Analysis record not found.", "warning")
         return redirect(url_for('dashboard'))
@@ -156,6 +187,12 @@ def results(resume_id):
 
 @app.route('/edit_details/<int:resume_id>', methods=['POST'])
 def edit_details(resume_id):
+    visitor_id = get_visitor_id()
+
+    full_data = db.get_full_analysis(resume_id, visitor_id)
+    if not full_data:
+        return "Record not found", 404
+
     skills_raw = request.form.get('skills', '')
     skills_list = [s.strip() for s in skills_raw.split(',') if s.strip()]
 
@@ -168,19 +205,35 @@ def edit_details(resume_id):
         'graduation_year': request.form.get('graduation_year'),
         'skills': skills_list
     }
-    
-    db.update_extracted_info(resume_id, updated_fields)
-    
-    # Re-run analysis with updated information
-    full_data = db.get_full_analysis(resume_id)
-    new_analysis = analyzer.analyze_resume_full(full_data['extracted'], full_data['cgpa'], full_data['analysis']['target_role'])
-    db.save_analysis_result(resume_id, new_analysis)
+
+    updated = db.update_extracted_info(
+        resume_id, updated_fields, visitor_id
+    )
+
+    if not updated:
+        return "Unable to update record", 404
+
+    full_data = db.get_full_analysis(resume_id, visitor_id)
+
+    new_analysis = analyzer.analyze_resume_full(
+        full_data['extracted'],
+        full_data['cgpa'],
+        full_data['analysis']['target_role']
+    )
+
+    db.save_analysis_result(resume_id, new_analysis, visitor_id)
 
     flash("Candidate details updated and score re-calculated!", "success")
     return redirect(url_for('results', resume_id=resume_id))
 
 @app.route('/update_cgpa/<int:resume_id>', methods=['POST'])
 def update_cgpa(resume_id):
+    visitor_id = get_visitor_id()
+
+    full_data = db.get_full_analysis(resume_id, visitor_id)
+    if not full_data:
+        return "Record not found", 404
+
     cgpa_fields = {
         'cgpa_y1': request.form.get('cgpa_y1', 'Pending'),
         'cgpa_y2': request.form.get('cgpa_y2', 'Pending'),
@@ -189,29 +242,42 @@ def update_cgpa(resume_id):
         'overall_cgpa': request.form.get('overall_cgpa', 'Not calculated')
     }
 
-    db.update_education_cgpa(resume_id, cgpa_fields)
+    db.update_education_cgpa(resume_id, cgpa_fields, visitor_id)
 
-    # Re-run analysis
-    full_data = db.get_full_analysis(resume_id)
-    new_analysis = analyzer.analyze_resume_full(full_data['extracted'], full_data['cgpa'], full_data['analysis']['target_role'])
-    db.save_analysis_result(resume_id, new_analysis)
+    full_data = db.get_full_analysis(resume_id, visitor_id)
+    new_analysis = analyzer.analyze_resume_full(
+        full_data['extracted'],
+        full_data['cgpa'],
+        full_data['analysis']['target_role']
+    )
+
+    db.save_analysis_result(resume_id, new_analysis, visitor_id)
 
     flash("Academic CGPA records updated successfully!", "success")
     return redirect(url_for('results', resume_id=resume_id))
 
 @app.route('/api/target_role_analysis', methods=['POST'])
 def api_target_role_analysis():
-    req = request.get_json()
+    req = request.get_json(silent=True) or {}
     resume_id = req.get('resume_id')
     target_role = req.get('target_role', 'Python Developer')
 
-    full_data = db.get_full_analysis(resume_id)
+    if not resume_id:
+        return jsonify({'error': 'Resume ID is required'}), 400
+
+    visitor_id = get_visitor_id()
+
+    full_data = db.get_full_analysis(resume_id, visitor_id)
     if not full_data:
         return jsonify({'error': 'Record not found'}), 404
 
-    # Re-evaluate role match & analysis
-    new_analysis = analyzer.analyze_resume_full(full_data['extracted'], full_data['cgpa'], target_role)
-    db.save_analysis_result(resume_id, new_analysis)
+    new_analysis = analyzer.analyze_resume_full(
+        full_data['extracted'],
+        full_data['cgpa'],
+        target_role
+    )
+
+    db.save_analysis_result(resume_id, new_analysis, visitor_id)
 
     return jsonify({
         'success': True,
@@ -220,22 +286,32 @@ def api_target_role_analysis():
 
 @app.route('/history')
 def history():
-    resumes = db.get_all_saved_resumes()
+    visitor_id = get_visitor_id()
+    resumes = db.get_all_saved_resumes(visitor_id)
     return render_template('history.html', resumes=resumes)
 
 @app.route('/delete/<int:resume_id>', methods=['POST'])
 def delete_resume(resume_id):
-    db.delete_resume_record(resume_id)
+    visitor_id = get_visitor_id()
+
+    deleted = db.delete_resume_record(resume_id, visitor_id)
+
+    if not deleted:
+        flash("Resume record not found.", "warning")
+        return redirect(url_for('history'))
+
     flash("Resume record deleted successfully.", "info")
     return redirect(url_for('history'))
 
 @app.route('/profile')
 def profile():
-    user_prof = db.get_user_profile()
+    visitor_id = get_visitor_id()
+    user_prof = db.get_user_profile(visitor_id)
     return render_template('profile.html', profile=user_prof)
 
 @app.route('/update_profile', methods=['POST'])
 def update_profile():
+    visitor_id = get_visitor_id()
     profile_data = {
         'full_name': request.form.get('full_name'),
         'email': request.form.get('email'),
@@ -251,13 +327,14 @@ def update_profile():
         'preferred_role': request.form.get('preferred_role'),
         'interests': request.form.get('interests')
     }
-    db.update_user_profile(profile_data)
+    db.update_user_profile(profile_data, visitor_id)
     flash("Local demo profile updated successfully!", "success")
     return redirect(url_for('profile'))
 
 @app.route('/download_report/<int:resume_id>')
 def download_report(resume_id):
-    full_data = db.get_full_analysis(resume_id)
+    visitor_id = get_visitor_id()
+    full_data = db.get_full_analysis(resume_id, visitor_id) 
     if not full_data:
         flash("Cannot generate report: Record not found.", "danger")
         return redirect(url_for('dashboard'))

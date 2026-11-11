@@ -20,17 +20,31 @@ def init_db():
 
     # Resumes table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS resumes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            filename TEXT NOT NULL,
-            filepath TEXT NOT NULL,
-            file_type TEXT NOT NULL,
-            file_size INTEGER NOT NULL,
-            uploaded_at TEXT NOT NULL,
-            is_sample INTEGER DEFAULT 0
-        )
-    ''')
+    CREATE TABLE IF NOT EXISTS resumes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        visitor_id TEXT,
+        filename TEXT NOT NULL,
+        filepath TEXT NOT NULL,
+        file_type TEXT NOT NULL,
+        file_size INTEGER NOT NULL,
+        uploaded_at TEXT NOT NULL,
+        is_sample INTEGER DEFAULT 0
+    )
+''')
 
+    # Add visitor_id to existing databases safely
+    cursor.execute("PRAGMA table_info(resumes)")
+    columns = [row["name"] for row in cursor.fetchall()]
+
+    if "visitor_id" not in columns:
+        cursor.execute(
+            "ALTER TABLE resumes ADD COLUMN visitor_id TEXT"
+        )
+
+    cursor.execute('''
+        CREATE INDEX IF NOT EXISTS idx_resumes_visitor
+        ON resumes(visitor_id)
+    ''')
     # Extracted Info table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS extracted_info (
@@ -94,8 +108,9 @@ def init_db():
 
     # User Profile table (Local demo profile)
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS user_profile (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+       CREATE TABLE IF NOT EXISTS user_profile (
+    visitor_id TEXT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name TEXT DEFAULT 'Demo Student',
             email TEXT DEFAULT 'student@example.edu',
             phone TEXT DEFAULT '+91 98765 43210',
@@ -111,44 +126,74 @@ def init_db():
             interests TEXT DEFAULT 'Software Development, AI/ML, Data Analytics'
         )
     ''')
+        # Add visitor_id to existing user_profile tables
+    cursor.execute("PRAGMA table_info(user_profile)")
+    profile_columns = [row["name"] for row in cursor.fetchall()]
 
-    # Insert default demo profile if empty
-    cursor.execute('SELECT COUNT(*) FROM user_profile')
-    if cursor.fetchone()[0] == 0:
-        cursor.execute('''
-            INSERT INTO user_profile (full_name, email, phone, university, degree, graduation_year, cgpa_y1, cgpa_y2, cgpa_y3, cgpa_y4, overall_cgpa, preferred_role, interests)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            'Demo Student', 'student@example.edu', '+91 98765 43210',
-            'State Technological University', 'B.Tech in Computer Science & Engineering', '2026',
-            '8.2', '8.5', 'Pending', 'Pending', '8.35',
-            'Python Developer', 'Software Development, AI/ML, Data Analytics'
-        ))
+    if "visitor_id" not in profile_columns:
+        cursor.execute(
+            "ALTER TABLE user_profile ADD COLUMN visitor_id TEXT"
+        )
+
+    cursor.execute('''
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_user_profile_visitor
+        ON user_profile(visitor_id)
+        WHERE visitor_id IS NOT NULL
+    ''')
+
+   
 
     conn.commit()
     conn.close()
 
-def save_resume_record(filename, filepath, file_type, file_size, is_sample=0):
+def save_resume_record(
+    filename, filepath, file_type, file_size,
+    visitor_id, is_sample=0
+):
     conn = get_db_connection()
     cursor = conn.cursor()
+
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
     cursor.execute('''
-        INSERT INTO resumes (filename, filepath, file_type, file_size, uploaded_at, is_sample)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (filename, filepath, file_type, file_size, now, is_sample))
+        INSERT INTO resumes (
+            visitor_id, filename, filepath,
+            file_type, file_size, uploaded_at, is_sample
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        visitor_id, filename, filepath,
+        file_type, file_size, now, is_sample
+    ))
+
     resume_id = cursor.lastrowid
     conn.commit()
     conn.close()
+
     return resume_id
 
-def save_extracted_info(resume_id, extracted_data):
+def save_extracted_info(resume_id, extracted_data, visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    # Verify resume ownership
+    cursor.execute(
+        "SELECT id FROM resumes WHERE id = ? AND visitor_id = ?",
+        (resume_id, visitor_id)
+    )
+
+    if not cursor.fetchone():
+        conn.close()
+        return False
+
     cursor.execute('''
         INSERT INTO extracted_info (
-            resume_id, full_name, email, phone, education_degree, university, graduation_year,
-            skills_json, projects_json, experience_json, certifications_json, achievements_json, links_json, raw_text
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            resume_id, full_name, email, phone,
+            education_degree, university, graduation_year,
+            skills_json, projects_json, experience_json,
+            certifications_json, achievements_json, links_json, raw_text
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         resume_id,
         extracted_data.get('full_name', 'Not found'),
@@ -165,17 +210,31 @@ def save_extracted_info(resume_id, extracted_data):
         json.dumps(extracted_data.get('links', [])),
         extracted_data.get('raw_text', '')
     ))
+
     conn.commit()
     conn.close()
+    return True
 
-def save_education_cgpa(resume_id, cgpa_data):
+def save_education_cgpa(resume_id, cgpa_data, visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id FROM resumes WHERE id = ? AND visitor_id = ?",
+        (resume_id, visitor_id)
+    )
+
+    if not cursor.fetchone():
+        conn.close()
+        return False
+
     cursor.execute('''
         INSERT INTO education_cgpa (
-            resume_id, cgpa_y1, cgpa_y2, cgpa_y3, cgpa_y4, overall_cgpa,
-            cgpa_status_y1, cgpa_status_y2, cgpa_status_y3, cgpa_status_y4, overall_cgpa_type, scale
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            resume_id, cgpa_y1, cgpa_y2, cgpa_y3, cgpa_y4,
+            overall_cgpa, cgpa_status_y1, cgpa_status_y2,
+            cgpa_status_y3, cgpa_status_y4, overall_cgpa_type, scale
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         resume_id,
         cgpa_data.get('cgpa_y1', 'Pending'),
@@ -190,12 +249,22 @@ def save_education_cgpa(resume_id, cgpa_data):
         cgpa_data.get('overall_cgpa_type', 'user_provided'),
         cgpa_data.get('scale', 10.0)
     ))
+
     conn.commit()
     conn.close()
+    return True
 
-def save_analysis_result(resume_id, analysis_data):
+def save_analysis_result(resume_id, analysis_data, visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id FROM resumes WHERE id = ? AND visitor_id = ?",
+        (resume_id, visitor_id)
+    )
+
+    if not cursor.fetchone():
+        conn.close()
+        return False
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     cursor.execute('''
         INSERT INTO analysis_results (
@@ -217,22 +286,29 @@ def save_analysis_result(resume_id, analysis_data):
     ))
     conn.commit()
     conn.close()
-
-def get_full_analysis(resume_id):
+    return True
+def get_full_analysis(resume_id, visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    cursor.execute('SELECT * FROM resumes WHERE id = ?', (resume_id,))
+    cursor.execute(
+        "SELECT * FROM resumes WHERE id = ? AND visitor_id = ?",
+        (resume_id, visitor_id)
+    )
+
     resume = cursor.fetchone()
+
     if not resume:
         conn.close()
         return None
+    
+    
 
     cursor.execute('SELECT * FROM extracted_info WHERE resume_id = ?', (resume_id,))
     info = cursor.fetchone()
 
     cursor.execute('SELECT * FROM education_cgpa WHERE resume_id = ?', (resume_id,))
     cgpa = cursor.fetchone()
+
 
     cursor.execute('SELECT * FROM analysis_results WHERE resume_id = ? ORDER BY id DESC LIMIT 1', (resume_id,))
     analysis = cursor.fetchone()
@@ -299,67 +375,82 @@ def get_full_analysis(resume_id):
         'analysis': analysis_dict
     }
 
-def get_all_saved_resumes():
+def get_all_saved_resumes(visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute('''
-        SELECT r.id, r.filename, r.file_size, r.uploaded_at, r.is_sample,
-               a.ats_score, a.target_role, a.role_match_pct
+        SELECT
+            r.id,
+            r.filename,
+            r.file_size,
+            r.uploaded_at,
+            r.is_sample,
+            a.ats_score,
+            a.target_role,
+            a.role_match_pct
         FROM resumes r
         LEFT JOIN analysis_results a ON r.id = a.resume_id
+        WHERE r.visitor_id = ?
         GROUP BY r.id
         ORDER BY r.id DESC
-    ''')
+    ''', (visitor_id,))
+
     rows = cursor.fetchall()
     conn.close()
+
     return [dict(row) for row in rows]
 
-def delete_resume_record(resume_id):
+def delete_resume_record(resume_id, visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Get filepath first to delete physical file if present
-    cursor.execute('SELECT filepath, is_sample FROM resumes WHERE id = ?', (resume_id,))
+
+    cursor.execute(
+        'SELECT filepath, is_sample FROM resumes WHERE id = ? AND visitor_id = ?',
+        (resume_id, visitor_id)
+    )
+
     row = cursor.fetchone()
-    if row and not row['is_sample'] and os.path.exists(row['filepath']):
+
+    if not row:
+        conn.close()
+        return False
+
+    cursor.execute(
+        'DELETE FROM resumes WHERE id = ? AND visitor_id = ?',
+        (resume_id, visitor_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    if not row['is_sample'] and os.path.exists(row['filepath']):
         try:
             os.remove(row['filepath'])
         except Exception:
             pass
 
-    cursor.execute('DELETE FROM resumes WHERE id = ?', (resume_id,))
-    conn.commit()
-    conn.close()
     return True
 
-def get_user_profile():
+def get_user_profile(visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM user_profile LIMIT 1')
+
+    cursor.execute(
+        'SELECT * FROM user_profile WHERE visitor_id = ?',
+        (visitor_id,)
+    )
+
     row = cursor.fetchone()
     conn.close()
+
     return dict(row) if row else {}
 
-def update_user_profile(profile_data):
+def update_user_profile(profile_data, visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE user_profile SET
-            full_name = ?,
-            email = ?,
-            phone = ?,
-            university = ?,
-            degree = ?,
-            graduation_year = ?,
-            cgpa_y1 = ?,
-            cgpa_y2 = ?,
-            cgpa_y3 = ?,
-            cgpa_y4 = ?,
-            overall_cgpa = ?,
-            preferred_role = ?,
-            interests = ?
-        WHERE id = 1
-    ''', (
+
+    fields = (
         profile_data.get('full_name'),
         profile_data.get('email'),
         profile_data.get('phone'),
@@ -373,16 +464,57 @@ def update_user_profile(profile_data):
         profile_data.get('overall_cgpa'),
         profile_data.get('preferred_role'),
         profile_data.get('interests')
-    ))
+    )
+
+    cursor.execute(
+        'SELECT id FROM user_profile WHERE visitor_id = ?',
+        (visitor_id,)
+    )
+
+    row = cursor.fetchone()
+
+    if row:
+        cursor.execute('''
+            UPDATE user_profile SET
+                full_name = ?,
+                email = ?,
+                phone = ?,
+                university = ?,
+                degree = ?,
+                graduation_year = ?,
+                cgpa_y1 = ?,
+                cgpa_y2 = ?,
+                cgpa_y3 = ?,
+                cgpa_y4 = ?,
+                overall_cgpa = ?,
+                preferred_role = ?,
+                interests = ?
+            WHERE visitor_id = ?
+        ''', fields + (visitor_id,))
+    else:
+        cursor.execute('''
+            INSERT INTO user_profile (
+                visitor_id, full_name, email, phone, university,
+                degree, graduation_year, cgpa_y1, cgpa_y2,
+                cgpa_y3, cgpa_y4, overall_cgpa,
+                preferred_role, interests
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (visitor_id,) + fields)
+
     conn.commit()
     conn.close()
+    return True
 
-def update_extracted_info(resume_id, updated_fields):
+def update_extracted_info(resume_id, updated_fields, visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Prepare skills_json if list provided
-    skills_json = json.dumps(updated_fields.get('skills', [])) if isinstance(updated_fields.get('skills'), list) else updated_fields.get('skills_json')
+
+    skills_json = (
+        json.dumps(updated_fields.get('skills', []))
+        if isinstance(updated_fields.get('skills'), list)
+        else updated_fields.get('skills_json')
+    )
 
     cursor.execute('''
         UPDATE extracted_info SET
@@ -394,6 +526,11 @@ def update_extracted_info(resume_id, updated_fields):
             graduation_year = ?,
             skills_json = COALESCE(?, skills_json)
         WHERE resume_id = ?
+        AND EXISTS (
+            SELECT 1 FROM resumes
+            WHERE resumes.id = extracted_info.resume_id
+            AND resumes.visitor_id = ?
+        )
     ''', (
         updated_fields.get('full_name'),
         updated_fields.get('email'),
@@ -402,15 +539,20 @@ def update_extracted_info(resume_id, updated_fields):
         updated_fields.get('university'),
         updated_fields.get('graduation_year'),
         skills_json,
-        resume_id
+        resume_id,
+        visitor_id
     ))
-    conn.commit()
-    conn.close()
 
-def update_education_cgpa(resume_id, cgpa_fields):
+    conn.commit()
+    updated = cursor.rowcount > 0
+    conn.close()
+    return updated
+
+
+def update_education_cgpa(resume_id, cgpa_fields, visitor_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     y1 = cgpa_fields.get('cgpa_y1', 'Pending')
     y2 = cgpa_fields.get('cgpa_y2', 'Pending')
     y3 = cgpa_fields.get('cgpa_y3', 'Pending')
@@ -430,13 +572,22 @@ def update_education_cgpa(resume_id, cgpa_fields):
             cgpa_status_y4 = ?,
             overall_cgpa_type = 'user_provided'
         WHERE resume_id = ?
+        AND EXISTS (
+            SELECT 1 FROM resumes
+            WHERE resumes.id = education_cgpa.resume_id
+            AND resumes.visitor_id = ?
+        )
     ''', (
         y1, y2, y3, y4, overall,
         'Completed' if y1 != 'Pending' and y1 != '' else 'Pending',
         'Completed' if y2 != 'Pending' and y2 != '' else 'Pending',
         'Completed' if y3 != 'Pending' and y3 != '' else 'Pending',
         'Completed' if y4 != 'Pending' and y4 != '' else 'Pending',
-        resume_id
+        resume_id,
+        visitor_id
     ))
+
     conn.commit()
+    updated = cursor.rowcount > 0
     conn.close()
+    return updated

@@ -1,26 +1,48 @@
-import os
-import tempfile
 
-_secret_key = os.environ.get('SECRET_KEY')
-if os.environ.get('VERCEL') == '1' and not _secret_key:
-    raise RuntimeError('Set the SECRET_KEY environment variable in Vercel.')
+import os
+from datetime import timedelta
+
+_secret_key = os.environ.get("SECRET_KEY")
+
+# Detect production deployment
+IS_PRODUCTION = (
+    os.environ.get("RENDER") == "true"
+    or os.environ.get("VERCEL") == "1"
+)
+
+if IS_PRODUCTION and not _secret_key:
+    raise RuntimeError(
+        "SECRET_KEY environment variable must be configured in production."
+    )
 
 class Config:
-    SECRET_KEY = _secret_key or 'resumeready-secret-key-2026-college-project'
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    RUNTIME_DIR = tempfile.gettempdir() if os.environ.get('VERCEL') == '1' else BASE_DIR
-    UPLOAD_FOLDER = os.path.join(RUNTIME_DIR, 'uploads')
-    SAMPLE_FOLDER = os.path.join(BASE_DIR, 'sample_data')
-    DATABASE_PATH = os.path.join(RUNTIME_DIR, 'instance', 'resumeready.db')
-    MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB limit
-    ALLOWED_EXTENSIONS = {'pdf', 'docx'}
+    SECRET_KEY = _secret_key or "local-development-only-change-this-key"
 
-    # Explainable Scoring Weights (Total = 100%)
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+    # Configure DATA_DIR to your persistent Render disk mount path.
+    DATA_DIR = os.environ.get("DATA_DIR", BASE_DIR)
+
+    UPLOAD_FOLDER = os.path.join(DATA_DIR, "uploads")
+    SAMPLE_FOLDER = os.path.join(BASE_DIR, "sample_data")
+    DATABASE_PATH = os.path.join(
+        DATA_DIR, "instance", "resumeready.db"
+    )
+
+    MAX_CONTENT_LENGTH = 10 * 1024 * 1024
+    ALLOWED_EXTENSIONS = {"pdf", "docx"}
+
+    # Persistent visitor session
+    PERMANENT_SESSION_LIFETIME = timedelta(days=90)
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = IS_PRODUCTION
+    SESSION_COOKIE_SAMESITE = "Lax"
+
     SCORING_WEIGHTS = {
-        'structure': 15,          # Document structure, formatting, sections
-        'skills': 25,             # Relevant technical & domain skills detected
-        'education': 15,          # Education, degree, year-wise CGPA complete
-        'projects_experience': 25, # Practical projects, internships, work exp
-        'role_keywords': 10,       # Match against target job role keywords
-        'achievements': 10        # Certifications, metrics, measurable outcomes
+        "structure": 15,
+        "skills": 25,
+        "education": 15,
+        "projects_experience": 25,
+        "role_keywords": 10,
+        "achievements": 10
     }
