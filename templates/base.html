@@ -45,7 +45,11 @@
           </li>
         </ul>
 
-        <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2">
+          <a href="{{ url_for('create_resume') }}" class="btn btn-brand-outline">
+            <i class="bi bi-file-earmark-plus me-1"></i> Create Resume
+          </a>
+
           <a href="{{ url_for('upload') }}" class="btn btn-brand-primary">
             <i class="bi bi-upload me-1"></i> Upload Resume
           </a>

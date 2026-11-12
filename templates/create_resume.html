@@ -1,0 +1,1950 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Create Resume — ResumeReady.AI{% endblock %}
+
+{% block content %}
+<style>
+/* MODERN TEMPLATE */
+#resume-preview.template-modern {
+    font-family: Arial, sans-serif;
+    color: #26354a;
+    border-top: 5px solid #2563eb;
+}
+
+#resume-preview.template-modern h6 {
+    color: #2563eb;
+    letter-spacing: 1px;
+}
+
+/* PROFESSIONAL TEMPLATE */
+#resume-preview.template-professional {
+    font-family: Georgia, serif;
+    color: #222;
+    border-top: 5px solid #222;
+}
+
+#resume-preview.template-professional h6 {
+    color: #222;
+    letter-spacing: 1.2px;
+}
+
+/* MINIMAL TEMPLATE */
+#resume-preview.template-minimal {
+    font-family: Arial, sans-serif;
+    color: #444;
+    border-top: 3px solid #999;
+    box-shadow: none;
+}
+
+#resume-preview.template-minimal h6 {
+    color: #555;
+    border-color: #ddd !important;
+}
+
+/* CREATIVE TEMPLATE */
+#resume-preview.template-creative {
+    font-family: Arial, sans-serif;
+    color: #26354a;
+    border-top: 6px solid #7c3aed;
+    background-color: #faf7ff !important;
+}
+
+#resume-preview.template-creative h3,
+#resume-preview.template-creative h6 {
+    color: #7c3aed;
+}
+/* PRINT ONLY THE RESUME PREVIEW */
+@page {
+    size: A4 portrait;
+    margin: 8mm;
+}
+
+@media print {
+
+    /* Hide the page heading, progress bar and form */
+    .container-fluid > .d-flex,
+    .container-fluid > .saas-card,
+    .container-fluid > .row > .col-lg-7 {
+        display: none !important;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    #resume-preview,
+    #resume-preview * {
+        visibility: visible !important;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .container-fluid > .row {
+        display: block !important;
+        margin: 0 !important;
+    }
+
+    .container-fluid > .row > .col-lg-5 {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+        padding: 0 !important;
+    }
+
+    .sticky-top {
+        position: static !important;
+    }
+
+    #resume-preview {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 194mm !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 5mm !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: white !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* A4 TWO-COLUMN RESUME PRINT LAYOUT */
+@page {
+    size: A4 portrait;
+    margin: 8mm;
+}
+
+@media print {
+
+    /* Keep only the resume preview */
+    body * {
+        visibility: hidden !important;
+    }
+
+    #resume-preview,
+    #resume-preview * {
+        visibility: visible !important;
+    }
+
+    #resume-preview {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 194mm !important;
+        margin: 0 !important;
+        padding: 4mm !important;
+        box-sizing: border-box !important;
+
+        /* Two equal columns */
+        column-count: 2 !important;
+        column-gap: 8mm !important;
+        column-rule: 1px solid #cccccc;
+        column-fill: balance !important;
+    }
+
+    /* Personal details across the full page */
+    #preview-personal-section {
+        column-span: all !important;
+        text-align: center;
+        margin-bottom: 5mm !important;
+    }
+
+    /* Keep each resume section together */
+    #resume-preview > div:not(#preview-personal-section) {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Compact section spacing */
+    #resume-preview .mb-3 {
+        margin-bottom: 3mm !important;
+    }
+
+    #resume-preview h6 {
+        font-size: 9pt !important;
+        margin-bottom: 2mm !important;
+    }
+
+    #resume-preview p,
+    #resume-preview .small {
+        font-size: 8pt !important;
+        line-height: 1.25 !important;
+    }
+}
+
+</style>
+
+<div class="container-fluid py-4 px-lg-5">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-navy mb-1">
+                <i class="bi bi-file-earmark-plus-fill text-brand-blue me-2"></i>
+                Create Your Resume
+            </h2>
+            <p class="text-muted mb-0">
+                Build a professional, ATS-friendly resume from scratch.
+            </p>
+        </div>
+
+        <a href="{{ url_for('dashboard') }}" class="btn btn-brand-outline mt-2 mt-md-0">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="saas-card p-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-semibold text-navy">Resume Completion</span>
+            <span class="text-brand-blue fw-bold">0%</span>
+        </div>
+
+        <div class="progress" style="height: 9px;">
+            <div class="progress-bar bg-primary"
+                 role="progressbar"
+                 style="width: 0%;">
+            </div>
+        </div>
+
+        <small class="text-muted mt-2 d-block">
+            Complete the required sections to build your resume.
+        </small>
+    </div>
+
+    <!-- Main Builder Layout -->
+    <div class="row g-4">
+
+        <!-- LEFT SIDE: Resume Form -->
+        <div class="col-lg-7">
+
+            
+<div class="saas-card p-4 mb-4">
+
+    <h4 class="fw-bold text-navy mb-2">
+        <i class="bi bi-person-circle text-brand-blue me-2"></i>
+        Personal Information
+    </h4>
+
+    <p class="text-muted small mb-4">
+        Enter your personal and contact details.
+        Fields marked with * are mandatory.
+    </p>
+
+    <div class="row g-3">
+
+        <!-- Full Name -->
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">
+                Full Name *
+            </label>
+            <input type="text" class="form-control"
+                   id="full_name" name="full_name"
+                   placeholder="Enter your full name"
+                   pattern="[A-Za-z][A-Za-z .'-]*"
+                   maxlength="60" required>
+        </div>
+
+        <!-- Job Title -->
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">
+                Target Job Title *
+            </label>
+            <input type="text" class="form-control"
+                   id="job_title" name="job_title"
+                   placeholder="e.g. Data Analyst"
+                   maxlength="80" required>
+        </div>
+
+        <!-- Email -->
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">
+                Email Address *
+            </label>
+            <input type="email" class="form-control"
+                   id="email" name="email"
+                   placeholder="example@gmail.com"
+                   maxlength="120" required>
+        </div>
+
+        <!-- Phone -->
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">
+                Phone Number *
+            </label>
+            <input type="tel" class="form-control"
+                   id="phone" name="phone"
+                   placeholder="10-digit mobile number"
+                   inputmode="numeric"
+                   pattern="[0-9]{10}"
+                   maxlength="10"
+                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
+                   required>
+            <small class="text-muted">Enter 10 digits.</small>
+        </div>
+
+        <!-- Location -->
+        <div class="col-12">
+            <label class="form-label fw-semibold">
+                Location *
+            </label>
+            <input type="text" class="form-control"
+                   id="location" name="location"
+                   placeholder="e.g. Hyderabad, Telangana, India"
+                   maxlength="120" required>
+        </div>
+
+        <!-- LinkedIn -->
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">
+                LinkedIn Profile
+            </label>
+            <input type="url" class="form-control"
+                   id="linkedin" name="linkedin"
+                   placeholder="https://linkedin.com/in/yourname">
+        </div>
+
+        <!-- GitHub -->
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">
+                GitHub Profile
+            </label>
+            <input type="url" class="form-control"
+                   id="github" name="github"
+                   placeholder="https://github.com/yourname">
+        </div>
+
+        <!-- Portfolio -->
+        <div class="col-12">
+            <label class="form-label fw-semibold">
+                Portfolio / Personal Website
+            </label>
+            <input type="url" class="form-control"
+                   id="portfolio" name="portfolio"
+                   placeholder="https://yourwebsite.com">
+        </div>
+
+        <!-- Professional Summary -->
+        <div class="col-12">
+            <label class="form-label fw-semibold">
+                Professional Summary *
+            </label>
+            <textarea class="form-control"
+                      id="summary" name="summary"
+                      rows="4"
+                      minlength="30"
+                      maxlength="600"
+                      placeholder="Write a short professional introduction about yourself..."
+                      required></textarea>
+            <small class="text-muted">
+                Minimum 30 characters, maximum 600 characters.
+            </small>
+        </div>
+
+    </div>
+
+    <div class="alert alert-info mt-4 mb-0">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        Your information will be used to generate your professional resume.
+    </div>
+
+</div>
+
+
+            <!-- Other Resume Sections -->
+            
+<!-- EDUCATION SECTION -->
+<div class="saas-card p-4 mb-4">
+
+    <h4 class="fw-bold text-navy mb-2">
+        <i class="bi bi-mortarboard-fill text-brand-blue me-2"></i>
+        Education
+    </h4>
+
+    <p class="text-muted small mb-4">
+        Add your academic qualifications and academic performance.
+    </p>
+
+    <!-- Graduation -->
+    <h5 class="fw-bold text-brand-blue mb-3">Graduation / Degree *</h5>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">College / University *</label>
+            <input type="text" class="form-control"
+                   name="college" placeholder="College name"
+                   maxlength="150" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Degree *</label>
+            <input type="text" class="form-control"
+                   name="degree" placeholder="e.g. B.Tech"
+                   maxlength="80" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Branch / Specialization *</label>
+            <input type="text" class="form-control"
+                   name="branch" placeholder="e.g. CSE - AI & Data Science"
+                   maxlength="100" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">CGPA *</label>
+            <input type="number" class="form-control"
+                   name="college_cgpa" placeholder="e.g. 8.75"
+                   min="0" max="10" step="0.01" required>
+            <small class="text-muted">Enter a value between 0 and 10.</small>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Start Year *</label>
+            <input type="number" class="form-control"
+                   name="college_start_year" placeholder="e.g. 2024"
+                   min="1950" max="2100" step="1" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Graduation Year *</label>
+            <input type="number" class="form-control"
+                   name="college_end_year" placeholder="e.g. 2028"
+                   min="1950" max="2100" step="1" required>
+        </div>
+
+    </div>
+
+    <hr>
+
+    <!-- Intermediate / 12th -->
+    <h5 class="fw-bold text-brand-blue mb-3">Intermediate / 12th *</h5>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">College / School *</label>
+            <input type="text" class="form-control"
+                   name="intermediate_school"
+                   placeholder="Institution name"
+                   maxlength="150" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Board *</label>
+            <input type="text" class="form-control"
+                   name="intermediate_board"
+                   placeholder="e.g. Telangana State Board"
+                   maxlength="100" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Percentage *</label>
+            <input type="number" class="form-control"
+                   name="intermediate_percentage"
+                   placeholder="e.g. 92.50"
+                   min="0" max="100" step="0.01" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Passing Year *</label>
+            <input type="number" class="form-control"
+                   name="intermediate_year"
+                   placeholder="e.g. 2024"
+                   min="1950" max="2100" step="1" required>
+        </div>
+
+    </div>
+
+    <hr>
+
+    <!-- 10th -->
+    <h5 class="fw-bold text-brand-blue mb-3">10th / SSC *</h5>
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">School Name *</label>
+            <input type="text" class="form-control"
+                   name="tenth_school"
+                   placeholder="School name"
+                   maxlength="150" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Board *</label>
+            <input type="text" class="form-control"
+                   name="tenth_board"
+                   placeholder="e.g. SSC / CBSE / ICSE"
+                   maxlength="100" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Percentage *</label>
+            <input type="number" class="form-control"
+                   name="tenth_percentage"
+                   placeholder="e.g. 90.00"
+                   min="0" max="100" step="0.01" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Passing Year *</label>
+            <input type="number" class="form-control"
+                   name="tenth_year"
+                   placeholder="e.g. 2022"
+                   min="1950" max="2100" step="1" required>
+        </div>
+
+    </div>
+
+    <div class="alert alert-info mt-4 mb-0">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        CGPA must be between 0 and 10. Percentages must be between 0 and 100.
+    </div>
+
+</div>
+
+
+            
+<!-- SKILLS SECTION -->
+<div class="saas-card p-4 mb-4">
+
+    <h4 class="fw-bold text-navy mb-2">
+        <i class="bi bi-code-slash text-brand-blue me-2"></i>
+        Skills
+    </h4>
+
+    <p class="text-muted small mb-4">
+        Highlight your technical abilities and professional strengths.
+    </p>
+
+    <div class="mb-4">
+        <label class="form-label fw-semibold">Technical Skills *</label>
+        <textarea class="form-control"
+                  name="technical_skills"
+                  rows="3" maxlength="500"
+                  placeholder="Python, C++, SQL, HTML, CSS, Machine Learning"
+                  required></textarea>
+        <small class="text-muted">Separate skills using commas.</small>
+    </div>
+
+    <hr>
+
+    <div class="mb-4">
+        <label class="form-label fw-semibold">Soft Skills *</label>
+        <textarea class="form-control"
+                  name="soft_skills"
+                  rows="2" maxlength="400"
+                  placeholder="Communication, Teamwork, Problem Solving"
+                  required></textarea>
+        <small class="text-muted">Separate skills using commas.</small>
+    </div>
+
+    <hr>
+
+    <div class="mb-4">
+        <label class="form-label fw-semibold">Tools & Technologies</label>
+        <textarea class="form-control"
+                  name="tools"
+                  rows="2" maxlength="400"
+                  placeholder="VS Code, Git, GitHub, Excel, Power BI"></textarea>
+        <small class="text-muted">Optional field. Separate using commas.</small>
+    </div>
+
+    <hr>
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Languages Known *</label>
+        <input type="text" class="form-control"
+               name="languages" maxlength="200"
+               placeholder="English, Telugu, Hindi" required>
+    </div>
+
+    <div class="alert alert-info mb-0">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        Mention only skills and languages you genuinely know.
+    </div>
+
+</div>
+
+
+            
+<!-- PROJECTS SECTION -->
+<div class="saas-card p-4 mb-4">
+
+    <h4 class="fw-bold text-navy mb-2">
+        <i class="bi bi-kanban-fill text-brand-blue me-2"></i>
+        Projects
+    </h4>
+
+    <p class="text-muted small mb-4">
+        Showcase your academic, personal and professional projects.
+    </p>
+
+    <div id="projects-container">
+
+        <div class="project-entry border rounded-3 p-3 mb-3">
+
+            <h5 class="fw-bold text-brand-blue mb-3">Project 1</h5>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Project Title *</label>
+                    <input type="text" class="form-control"
+                           name="project_title[]" maxlength="100"
+                           placeholder="e.g. ResumeReady.AI" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Project Type *</label>
+                    <select class="form-select" name="project_type[]" required>
+                        <option value="">Select project type</option>
+                        <option>Academic Project</option>
+                        <option>Personal Project</option>
+                        <option>Hackathon Project</option>
+                        <option>Research Project</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Project Description *</label>
+                    <textarea class="form-control"
+                              name="project_description[]"
+                              rows="3" minlength="20" maxlength="800"
+                              placeholder="Describe the project, its purpose and your contribution..."
+                              required></textarea>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Technologies Used *</label>
+                    <input type="text" class="form-control"
+                           name="project_technologies[]"
+                           maxlength="300"
+                           placeholder="Python, Flask, SQLite, HTML, CSS"
+                           required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Your Role *</label>
+                    <input type="text" class="form-control"
+                           name="project_role[]" maxlength="100"
+                           placeholder="e.g. Developer / Team Leader"
+                           required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Project Duration</label>
+                    <input type="text" class="form-control"
+                           name="project_duration[]" maxlength="60"
+                           placeholder="e.g. June 2026 – July 2026">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Project Link (Optional)</label>
+                    <input type="url" class="form-control"
+                           name="project_link[]"
+                           placeholder="https://github.com/your-project">
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <button type="button" class="btn btn-brand-outline"
+            onclick="addProject()">
+        <i class="bi bi-plus-circle me-2"></i>
+        Add Another Project
+    </button>
+
+</div>
+
+
+            
+<!-- EXPERIENCE & INTERNSHIPS SECTION -->
+<div class="saas-card p-4 mb-4">
+
+    <h4 class="fw-bold text-navy mb-2">
+        <i class="bi bi-briefcase-fill text-brand-blue me-2"></i>
+        Experience & Internships
+    </h4>
+
+    <p class="text-muted small mb-4">
+        Add internships, employment, training or volunteering experience.
+        This section is optional for freshers.
+    </p>
+
+    <div id="experience-container">
+
+        <div class="experience-entry border rounded-3 p-3 mb-3">
+
+            <h5 class="fw-bold text-brand-blue mb-3">Experience 1</h5>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Job Title / Role</label>
+                    <input type="text" class="form-control"
+                           name="experience_role[]"
+                           maxlength="100"
+                           placeholder="e.g. Data Analyst Intern">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Company / Organization</label>
+                    <input type="text" class="form-control"
+                           name="experience_company[]"
+                           maxlength="150"
+                           placeholder="Organization name">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Experience Type</label>
+                    <select class="form-select" name="experience_type[]">
+                        <option value="">Select type</option>
+                        <option>Internship</option>
+                        <option>Full-time</option>
+                        <option>Part-time</option>
+                        <option>Freelance</option>
+                        <option>Apprenticeship</option>
+                        <option>Training</option>
+                        <option>Volunteer</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Location</label>
+                    <input type="text" class="form-control"
+                           name="experience_location[]"
+                           maxlength="120"
+                           placeholder="e.g. Hyderabad, India">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Start Date</label>
+                    <input type="month" class="form-control"
+                           name="experience_start[]">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">End Date</label>
+                    <input type="month" class="form-control"
+                           name="experience_end[]">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">
+                        Responsibilities & Achievements
+                    </label>
+                    <textarea class="form-control"
+                              name="experience_description[]"
+                              rows="4" maxlength="1000"
+                              placeholder="Describe your responsibilities and achievements..."></textarea>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <button type="button" class="btn btn-brand-outline"
+            onclick="addExperience()">
+        <i class="bi bi-plus-circle me-2"></i>
+        Add Another Experience
+    </button>
+
+    <div class="alert alert-info mt-4 mb-0">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        This section is optional. Freshers can skip it.
+    </div>
+
+</div>
+
+
+            
+<!-- CERTIFICATIONS & ACHIEVEMENTS SECTION -->
+<div class="saas-card p-4 mb-4">
+
+    <h4 class="fw-bold text-navy mb-2">
+        <i class="bi bi-award-fill text-brand-blue me-2"></i>
+        Certifications & Achievements
+    </h4>
+
+    <p class="text-muted small mb-4">
+        Highlight your professional certifications, awards and accomplishments.
+    </p>
+
+    <!-- CERTIFICATIONS -->
+    <h5 class="fw-bold text-brand-blue mb-3">
+        <i class="bi bi-patch-check-fill me-2"></i>
+        Certifications
+    </h5>
+
+    <div id="certifications-container">
+
+        <div class="certification-entry border rounded-3 p-3 mb-3">
+
+            <h6 class="fw-bold mb-3">Certification 1</h6>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Certification Name</label>
+                    <input type="text" class="form-control"
+                           name="certification_name[]"
+                           maxlength="150"
+                           placeholder="e.g. Python Programming">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Issuing Organization</label>
+                    <input type="text" class="form-control"
+                           name="certification_organization[]"
+                           maxlength="150"
+                           placeholder="e.g. Microsoft, Google, NPTEL">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Issue Date</label>
+                    <input type="month" class="form-control"
+                           name="certification_issue_date[]">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Expiry Date (Optional)</label>
+                    <input type="month" class="form-control"
+                           name="certification_expiry_date[]">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Credential ID (Optional)</label>
+                    <input type="text" class="form-control"
+                           name="certification_credential_id[]"
+                           maxlength="150"
+                           placeholder="Enter credential ID">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Verification URL (Optional)</label>
+                    <input type="url" class="form-control"
+                           name="certification_url[]"
+                           placeholder="https://example.com/certificate">
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <button type="button" class="btn btn-brand-outline mb-4"
+            onclick="addCertification()">
+        <i class="bi bi-plus-circle me-2"></i>
+        Add Another Certification
+    </button>
+
+    <hr class="my-4">
+
+    <!-- ACHIEVEMENTS -->
+    <h5 class="fw-bold text-brand-blue mb-3">
+        <i class="bi bi-trophy-fill me-2"></i>
+        Achievements & Awards
+    </h5>
+
+    <div id="achievements-container">
+
+        <div class="achievement-entry border rounded-3 p-3 mb-3">
+
+            <h6 class="fw-bold mb-3">Achievement 1</h6>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Achievement / Award Title</label>
+                    <input type="text" class="form-control"
+                           name="achievement_title[]"
+                           maxlength="150"
+                           placeholder="e.g. First Prize in Hackathon">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Issuing Organization</label>
+                    <input type="text" class="form-control"
+                           name="achievement_organization[]"
+                           maxlength="150"
+                           placeholder="College / Organization">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Date</label>
+                    <input type="month" class="form-control"
+                           name="achievement_date[]">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Description</label>
+                    <textarea class="form-control"
+                              name="achievement_description[]"
+                              rows="3" maxlength="800"
+                              placeholder="Describe your achievement and why it is important..."></textarea>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <button type="button" class="btn btn-brand-outline"
+            onclick="addAchievement()">
+        <i class="bi bi-plus-circle me-2"></i>
+        Add Another Achievement
+    </button>
+
+</div>
+
+
+<!-- HOBBIES & INTERESTS SECTION -->
+<div class="saas-card p-4 mb-4">
+
+    <h4 class="fw-bold text-navy mb-2">
+        <i class="bi bi-heart-fill text-brand-blue me-2"></i>
+        Hobbies & Interests
+    </h4>
+
+    <p class="text-muted small mb-4">
+        Share your personal interests, hobbies and activities.
+    </p>
+
+    <div id="hobbies-container">
+
+        <div class="hobby-entry border rounded-3 p-3 mb-3">
+
+            <h6 class="fw-bold mb-3">Hobby 1</h6>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Hobby / Interest</label>
+                    <input type="text" class="form-control"
+                           name="hobby_name[]"
+                           maxlength="100"
+                           placeholder="e.g. Cricket, Photography, Reading">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Category</label>
+                    <select class="form-select" name="hobby_category[]">
+                        <option value="">Select category</option>
+                        <option>Sports & Fitness</option>
+                        <option>Technology</option>
+                        <option>Music</option>
+                        <option>Arts & Creativity</option>
+                        <option>Reading & Writing</option>
+                        <option>Travel</option>
+                        <option>Social Activities</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">
+                        Description (Optional)
+                    </label>
+                    <textarea class="form-control"
+                              name="hobby_description[]"
+                              rows="2" maxlength="300"
+                              placeholder="Describe your hobbies, personal interests, how you pursue them, and any achievements, awards or recognition you have received...""></textarea>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <button type="button" class="btn btn-brand-outline"
+            onclick="addHobby()">
+        <i class="bi bi-plus-circle me-2"></i>
+        Add Another Hobby
+    </button>
+
+</div>
+
+        </div>
+
+        <!-- RIGHT SIDE: Resume Preview -->
+        <div class="col-lg-5">
+
+            <div class="saas-card p-4 sticky-top" style="top: 100px;">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-navy mb-0">
+                        <i class="bi bi-eye-fill text-brand-blue me-2"></i>
+                        Resume Preview
+                    </h5>
+
+                    <span class="badge bg-primary-subtle text-primary">
+                        Live Preview
+                    </span>
+                </div>
+
+                
+<div id="resume-preview"
+     class="border rounded-3 bg-white p-4"
+     style="min-height: 650px;">
+
+    <!-- PERSONAL DETAILS -->
+    <div id="preview-personal-section" class="text-center border-bottom pb-3 mb-3">
+
+        <h3 id="preview-name" class="fw-bold text-dark mb-1">
+            Your Name
+        </h3>
+
+        <h6 id="preview-job-title" class="text-primary mb-2">
+            Your Professional Title
+        </h6>
+
+        <p class="small text-muted mb-1">
+            <span id="preview-email">Email address</span>
+            <span class="mx-1">|</span>
+            <span id="preview-phone">Phone number</span>
+        </p>
+
+        <p class="small text-muted mb-1">
+            <span id="preview-location">Location</span>
+        </p>
+
+        <p class="small mb-0">
+            <span id="preview-linkedin"></span>
+            <span id="preview-github"></span>
+            <span id="preview-portfolio"></span>
+        </p>
+
+    </div>
+
+    <!-- PROFESSIONAL SUMMARY -->
+    <div id="preview-summary-section" class="mb-3">
+        <h6 class="fw-bold text-dark border-bottom pb-1">
+            PROFESSIONAL SUMMARY
+        </h6>
+
+        <p id="preview-summary" class="small text-muted">
+            Your professional summary will appear here.
+        </p>
+    </div>
+
+<!-- EDUCATION -->
+<div id="preview-skills-section" class="mb-3">
+    <h6 class="fw-bold text-dark border-bottom pb-1">
+        EDUCATION
+    </h6>
+
+   <div class="mb-2">
+    <strong class="d-block">Graduation/degree</strong>
+    <strong id="preview-degree"></strong>
+        <div class="small" id="preview-branch"></div>
+        <div class="small text-muted">
+            <span id="preview-college"></span>
+            <span id="preview-college-years"></span>
+        </div>
+        <div class="small" id="preview-cgpa"></div>
+    </div>
+
+    <div class="mb-2">
+        <strong>Intermediate / 12th</strong>
+        <div class="small" id="preview-intermediate-school"></div>
+        <div class="small text-muted" id="preview-intermediate-details"></div>
+    </div>
+
+    <div class="mb-2">
+        <strong>10th / SSC</strong>
+        <div class="small" id="preview-tenth-school"></div>
+        <div class="small text-muted" id="preview-tenth-details"></div>
+    </div>
+</div>
+
+<!-- SKILLS -->
+<div id="preview-skills-section" class="mb-3">
+    <h6 class="fw-bold text-dark border-bottom pb-1">
+        SKILLS
+    </h6>
+
+    <p class="small mb-1">
+        <strong>Technical Skills:</strong>
+        <span id="preview-technical-skills"></span>
+    </p>
+
+    <p class="small mb-1">
+        <strong>Soft Skills:</strong>
+        <span id="preview-soft-skills"></span>
+    </p>
+
+    <p class="small mb-1">
+        <strong>Tools & Technologies:</strong>
+        <span id="preview-tools"></span>
+    </p>
+
+    <p class="small mb-1">
+        <strong>Languages:</strong>
+        <span id="preview-languages"></span>
+    </p>
+</div>
+
+<!-- PROJECTS -->
+<div class="mb-3" id="preview-projects-section">
+    <h6 class="fw-bold text-dark border-bottom pb-1">
+        PROJECTS
+    </h6>
+
+    <div id="preview-projects-list">
+        <p class="small text-muted">
+            Your projects will appear here.
+        </p>
+    </div>
+</div>
+
+
+<!-- EXPERIENCE & INTERNSHIPS -->
+<div class="mb-3" id="preview-experience-section">
+    <h6 class="fw-bold text-dark border-bottom pb-1">
+        EXPERIENCE & INTERNSHIPS
+    </h6>
+
+    <div id="preview-experience-list">
+        <p class="small text-muted">
+            Your experience and internships will appear here.
+        </p>
+    </div>
+</div>
+ 
+<!-- CERTIFICATIONS -->
+<div class="mb-3" id="preview-certifications-section">
+    <h6 class="fw-bold text-dark border-bottom pb-1">
+        CERTIFICATIONS
+    </h6>
+
+    <div id="preview-certifications-list">
+        <p class="small text-muted">
+            Your certifications will appear here.
+        </p>
+    </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div class="mb-3" id="preview-achievements-section">
+    <h6 class="fw-bold text-dark border-bottom pb-1">
+        ACHIEVEMENTS
+    </h6>
+
+    <div id="preview-achievements-list">
+        <p class="small text-muted">
+            Your achievements will appear here.
+        </p>
+    </div>
+</div>
+<!-- HOBBIES & INTERESTS -->
+<div class="mb-3" id="preview-hobbies-section">
+
+    <h6 class="fw-bold text-dark border-bottom pb-1">
+        HOBBIES & INTERESTS
+    </h6>
+
+    <div id="preview-hobbies-list">
+        <p class="small text-muted">
+            Your hobbies and interests will appear here.
+        </p>
+    </div>
+
+</div>
+</div>
+
+                <div class="mt-3">
+    <label class="form-label fw-semibold">Choose Resume Template</label>
+
+    <select class="form-select" id="resume-template">
+        <option value="modern">Modern</option>
+        <option value="professional">Professional</option>
+        <option value="minimal">Minimal</option>
+        <option value="creative">Creative</option>
+    </select>
+</div>
+
+                <button type="button" id="download-resume"
+        class="btn btn-brand-primary w-100 mt-3">
+    <i class="bi bi-file-earmark-pdf me-2"></i>
+    Download Resume PDF
+</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    let projectCount = 1;
+
+    function addProject() {
+        const container = document.getElementById('projects-container');
+        const original = container.querySelector('.project-entry');
+
+        const newProject = original.cloneNode(true);
+
+        // Clear all input fields
+        newProject.querySelectorAll('input, textarea').forEach(field => {
+            field.value = '';
+        });
+
+        // Reset dropdown
+        newProject.querySelectorAll('select').forEach(field => {
+            field.selectedIndex = 0;
+        });
+
+        // Create project heading and remove button
+        const heading = newProject.querySelector('h5');
+
+        const header = document.createElement('div');
+        header.className = 'd-flex justify-content-between align-items-center mb-3';
+
+        heading.classList.remove('mb-3');
+        heading.classList.add('mb-0');
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'btn btn-sm btn-outline-danger';
+        removeButton.innerHTML = '<i class="bi bi-trash"></i> Remove';
+        removeButton.onclick = function () {
+            removeProject(this);
+        };
+
+        header.appendChild(heading);
+        header.appendChild(removeButton);
+
+        newProject.insertBefore(header, newProject.firstChild);
+
+        container.appendChild(newProject);
+
+        updateProjectNumbers();
+    }
+
+    function removeProject(button) {
+        button.closest('.project-entry').remove();
+        updateProjectNumbers();
+    }
+
+    function updateProjectNumbers() {
+        const projects = document.querySelectorAll('.project-entry');
+
+        projectCount = projects.length;
+
+        projects.forEach((project, index) => {
+            project.querySelector('h5').textContent =
+                'Project ' + (index + 1);
+        });
+    }
+
+// EXPERIENCE: ADD MULTIPLE ENTRIES
+
+function addExperience() {
+    const container = document.getElementById('experience-container');
+    const original = container.querySelector('.experience-entry');
+
+    const newEntry = original.cloneNode(true);
+
+    newEntry.querySelectorAll('input, textarea').forEach(field => {
+        field.value = '';
+    });
+
+    newEntry.querySelectorAll('select').forEach(field => {
+        field.selectedIndex = 0;
+    });
+
+    const heading = newEntry.querySelector('h5');
+
+    const header = document.createElement('div');
+    header.className = 'd-flex justify-content-between align-items-center mb-3';
+
+    heading.classList.remove('mb-3');
+    heading.classList.add('mb-0');
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn btn-sm btn-outline-danger';
+    removeButton.innerHTML = '<i class="bi bi-trash"></i> Remove';
+
+    removeButton.onclick = function () {
+        removeExperience(this);
+    };
+
+    header.appendChild(heading);
+    header.appendChild(removeButton);
+
+    newEntry.insertBefore(header, newEntry.firstChild);
+    container.appendChild(newEntry);
+
+    updateExperienceNumbers();
+}
+
+function removeExperience(button) {
+    button.closest('.experience-entry').remove();
+    updateExperienceNumbers();
+}
+
+function updateExperienceNumbers() {
+    const entries = document.querySelectorAll('.experience-entry');
+
+    entries.forEach((entry, index) => {
+        entry.querySelector('h5').textContent =
+            'Experience ' + (index + 1);
+    });
+}
+
+// COMMON FUNCTION: ADD A NEW ENTRY
+function addRepeatableEntry(containerId, entryClass, label) {
+    const container = document.getElementById(containerId);
+    const original = container.querySelector('.' + entryClass);
+
+    const newEntry = original.cloneNode(true);
+
+    // Clear input fields
+    newEntry.querySelectorAll('input, textarea').forEach(field => {
+        field.value = '';
+    });
+
+    // Reset dropdowns
+    newEntry.querySelectorAll('select').forEach(field => {
+        field.selectedIndex = 0;
+    });
+
+    // Create heading and remove button
+    const heading = newEntry.querySelector('h6');
+
+    const header = document.createElement('div');
+    header.className = 'd-flex justify-content-between align-items-center mb-3';
+
+    heading.classList.remove('mb-3');
+    heading.classList.add('mb-0');
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn btn-sm btn-outline-danger';
+    removeButton.innerHTML = '<i class="bi bi-trash"></i> Remove';
+
+    removeButton.onclick = function () {
+        newEntry.remove();
+        updateEntryNumbers(containerId, entryClass, label);
+    };
+
+    header.appendChild(heading);
+    header.appendChild(removeButton);
+
+    newEntry.insertBefore(header, newEntry.firstChild);
+    container.appendChild(newEntry);
+
+    updateEntryNumbers(containerId, entryClass, label);
+}
+
+// UPDATE ENTRY NUMBERS
+function updateEntryNumbers(containerId, entryClass, label) {
+    const container = document.getElementById(containerId);
+    const entries = container.querySelectorAll('.' + entryClass);
+
+    entries.forEach((entry, index) => {
+        entry.querySelector('h6').textContent =
+            label + ' ' + (index + 1);
+    });
+}
+
+// CERTIFICATIONS
+function addCertification() {
+    addRepeatableEntry(
+        'certifications-container',
+        'certification-entry',
+        'Certification'
+    );
+}
+
+// ACHIEVEMENTS
+function addAchievement() {
+    addRepeatableEntry(
+        'achievements-container',
+        'achievement-entry',
+        'Achievement'
+    );
+}
+
+// HOBBIES
+function addHobby() {
+    addRepeatableEntry(
+        'hobbies-container',
+        'hobby-entry',
+        'Hobby'
+    );
+}
+
+// LIVE PERSONAL INFORMATION PREVIEW
+
+function connectPreview(inputId, previewId, defaultText = '') {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+
+    if (!input || !preview) return;
+
+    function updatePreview() {
+        preview.textContent = input.value.trim() || defaultText;
+    }
+
+    input.addEventListener('input', updatePreview);
+    updatePreview();
+}
+
+// Basic personal information
+connectPreview('full_name', 'preview-name', 'Your Name');
+connectPreview('job_title', 'preview-job-title', 'Your Professional Title');
+connectPreview('email', 'preview-email', 'Email address');
+connectPreview('phone', 'preview-phone', 'Phone number');
+connectPreview('location', 'preview-location', 'Location');
+
+// Professional summary
+connectPreview(
+    'summary',
+    'preview-summary',
+    'Your professional summary will appear here.'
+);
+
+// Social and portfolio links
+connectPreview('linkedin', 'preview-linkedin');
+connectPreview('github', 'preview-github');
+connectPreview('portfolio', 'preview-portfolio');
+
+// EDUCATION AND SKILLS LIVE PREVIEW
+
+function connectNamedPreview(fieldName, previewId) {
+    const input = document.querySelector(`[name="${fieldName}"]`);
+    const preview = document.getElementById(previewId);
+
+    if (!input || !preview) return;
+
+    function update() {
+        preview.textContent = input.value.trim();
+    }
+
+    input.addEventListener('input', update);
+    input.addEventListener('change', update);
+    update();
+}
+
+// COMBINE MULTIPLE FIELDS INTO ONE PREVIEW LINE
+function connectCombinedPreview(fieldNames, previewId, formatter) {
+    const fields = fieldNames.map(name =>
+        document.querySelector(`[name="${name}"]`)
+    );
+
+    const preview = document.getElementById(previewId);
+
+    if (!preview) return;
+
+    function update() {
+        const values = fields.map(field => field ? field.value.trim() : '');
+        preview.textContent = formatter(values);
+    }
+
+    fields.forEach(field => {
+        if (field) {
+            field.addEventListener('input', update);
+            field.addEventListener('change', update);
+        }
+    });
+
+    update();
+}
+
+// GRADUATION
+connectNamedPreview('college', 'preview-college');
+connectNamedPreview('degree', 'preview-degree');
+connectNamedPreview('branch', 'preview-branch');
+
+connectCombinedPreview(
+    ['college_start_year', 'college_end_year'],
+    'preview-college-years',
+    values => values.filter(Boolean).join(' – ')
+);
+
+connectCombinedPreview(
+    ['college_cgpa'],
+    'preview-cgpa',
+    values => values[0] ? 'CGPA: ' + values[0] + '/10' : ''
+);
+
+// INTERMEDIATE
+connectNamedPreview('intermediate_school', 'preview-intermediate-school');
+
+connectCombinedPreview(
+    ['intermediate_board', 'intermediate_percentage', 'intermediate_year'],
+    'preview-intermediate-details',
+    values => [
+        values[0],
+        values[1] ? values[1] + '%' : '',
+        values[2]
+    ].filter(Boolean).join(' | ')
+);
+
+// 10TH
+connectNamedPreview('tenth_school', 'preview-tenth-school');
+
+connectCombinedPreview(
+    ['tenth_board', 'tenth_percentage', 'tenth_year'],
+    'preview-tenth-details',
+    values => [
+        values[0],
+        values[1] ? values[1] + '%' : '',
+        values[2]
+    ].filter(Boolean).join(' | ')
+);
+
+// SKILLS
+connectNamedPreview('technical_skills', 'preview-technical-skills');
+connectNamedPreview('soft_skills', 'preview-soft-skills');
+connectNamedPreview('tools', 'preview-tools');
+connectNamedPreview('languages', 'preview-languages');
+function updateProjectsPreview() {
+    const container = document.getElementById('preview-projects-list');
+    const projects = document.querySelectorAll('.project-entry');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+    let hasProjects = false;
+
+    projects.forEach((project, index) => {
+        const getValue = name => {
+            const field = project.querySelector(`[name="${name}[]"]`);
+            return field ? field.value.trim() : '';
+        };
+
+        const title = getValue('project_title');
+        const type = getValue('project_type');
+        const description = getValue('project_description');
+        const technologies = getValue('project_technologies');
+        const role = getValue('project_role');
+        const duration = getValue('project_duration');
+        const link = getValue('project_link');
+
+        if (!title && !type && !description && !technologies && !role && !duration && !link) {
+            return;
+        }
+
+        hasProjects = true;
+
+        const card = document.createElement('div');
+        card.className = 'mb-3';
+
+        const heading = document.createElement('strong');
+        heading.textContent = title || `Project ${index + 1}`;
+        card.appendChild(heading);
+
+        function addLine(value, className = 'small') {
+            if (!value) return;
+
+            const line = document.createElement('p');
+            line.className = className + ' mb-1';
+            line.textContent = value;
+            card.appendChild(line);
+        }
+
+        addLine(type);
+        addLine(description);
+        addLine(technologies ? 'Technologies: ' + technologies : '');
+        addLine(role ? 'Role: ' + role : '');
+        addLine(duration ? 'Duration: ' + duration : '');
+
+        if (link) {
+            const linkElement = document.createElement('a');
+            linkElement.href = link;
+            linkElement.textContent = 'View Project';
+            linkElement.target = '_blank';
+            linkElement.rel = 'noopener noreferrer';
+            card.appendChild(linkElement);
+        }
+
+        container.appendChild(card);
+    });
+
+    if (!hasProjects) {
+        container.textContent = 'Your projects will appear here.';
+    }
+}
+
+document.addEventListener('input', function(event) {
+    if (event.target.closest('.project-entry')) {
+        updateProjectsPreview();
+    }
+});
+
+document.addEventListener('change', function(event) {
+    if (event.target.closest('.project-entry')) {
+        updateProjectsPreview();
+    }
+});
+
+updateProjectsPreview();
+function updateExperiencePreview() {
+    const container = document.getElementById('preview-experience-list');
+    const entries = document.querySelectorAll('.experience-entry');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+    let hasExperience = false;
+
+    entries.forEach((entry, index) => {
+        const getValue = name => {
+            const field = entry.querySelector(`[name="experience_${name}[]"]`);
+            return field ? field.value.trim() : '';
+        };
+
+        const role = getValue('role');
+        const company = getValue('company');
+        const type = getValue('type');
+        const location = getValue('location');
+        const start = getValue('start');
+        const end = getValue('end');
+        const description = getValue('description');
+
+        if (!role && !company && !type && !location && !start && !end && !description) {
+            return;
+        }
+
+        hasExperience = true;
+
+        const card = document.createElement('div');
+        card.className = 'mb-3';
+
+        const heading = document.createElement('strong');
+        heading.textContent = role || `Experience ${index + 1}`;
+        card.appendChild(heading);
+
+        function addLine(value) {
+            if (!value) return;
+
+            const line = document.createElement('p');
+            line.className = 'small mb-1';
+            line.textContent = value;
+            card.appendChild(line);
+        }
+
+        addLine(company);
+        addLine(type);
+        addLine(location);
+
+        const dates = [start, end].filter(Boolean).join(' – ');
+        addLine(dates);
+
+        addLine(description);
+
+        container.appendChild(card);
+    });
+
+    if (!hasExperience) {
+        container.textContent = 'Your experience and internships will appear here.';
+    }
+}
+
+document.addEventListener('input', function(event) {
+    if (event.target.closest('.experience-entry')) {
+        updateExperiencePreview();
+    }
+});
+
+document.addEventListener('change', function(event) {
+    if (event.target.closest('.experience-entry')) {
+        updateExperiencePreview();
+    }
+});
+
+updateExperiencePreview();
+// CERTIFICATIONS LIVE PREVIEW
+
+function updateCertificationsPreview() {
+
+    const container = document.getElementById('preview-certifications-list');
+    const entries = document.querySelectorAll('.certification-entry');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+    let hasData = false;
+
+    entries.forEach((entry, index) => {
+
+        const getValue = name => {
+            const field = entry.querySelector(`[name="${name}[]"]`);
+            return field ? field.value.trim() : '';
+        };
+
+        const name = getValue('certification_name');
+        const organization = getValue('certification_organization');
+        const issueDate = getValue('certification_issue_date');
+        const expiryDate = getValue('certification_expiry_date');
+        const credentialId = getValue('certification_credential_id');
+        const url = getValue('certification_url');
+
+        if (!name && !organization && !issueDate && !expiryDate && !credentialId && !url) {
+            return;
+        }
+
+        hasData = true;
+
+        const card = document.createElement('div');
+        card.className = 'mb-3';
+
+        const heading = document.createElement('strong');
+        heading.textContent = name || `Certification ${index + 1}`;
+        card.appendChild(heading);
+
+        function addLine(value) {
+            if (!value) return;
+
+            const line = document.createElement('p');
+            line.className = 'small mb-1';
+            line.textContent = value;
+            card.appendChild(line);
+        }
+
+        addLine(organization);
+        addLine(issueDate ? 'Issued: ' + issueDate : '');
+        addLine(expiryDate ? 'Expires: ' + expiryDate : '');
+        addLine(credentialId ? 'Credential ID: ' + credentialId : '');
+
+        if (url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.textContent = 'View Certificate';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            card.appendChild(link);
+        }
+
+        container.appendChild(card);
+
+    });
+
+    if (!hasData) {
+        container.textContent = 'Your certifications will appear here.';
+    }
+}
+
+
+// ACHIEVEMENTS LIVE PREVIEW
+
+function updateAchievementsPreview() {
+
+    const container = document.getElementById('preview-achievements-list');
+    const entries = document.querySelectorAll('.achievement-entry');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+    let hasData = false;
+
+    entries.forEach((entry, index) => {
+
+        const getValue = name => {
+            const field = entry.querySelector(`[name="${name}[]"]`);
+            return field ? field.value.trim() : '';
+        };
+
+        const title = getValue('achievement_title');
+        const organization = getValue('achievement_organization');
+        const date = getValue('achievement_date');
+        const description = getValue('achievement_description');
+
+        if (!title && !organization && !date && !description) {
+            return;
+        }
+
+        hasData = true;
+
+        const card = document.createElement('div');
+        card.className = 'mb-3';
+
+        const heading = document.createElement('strong');
+        heading.textContent = title || `Achievement ${index + 1}`;
+        card.appendChild(heading);
+
+        function addLine(value) {
+            if (!value) return;
+
+            const line = document.createElement('p');
+            line.className = 'small mb-1';
+            line.textContent = value;
+            card.appendChild(line);
+        }
+
+        addLine(organization);
+        addLine(date);
+        addLine(description);
+
+        container.appendChild(card);
+
+    });
+
+    if (!hasData) {
+        container.textContent = 'Your achievements will appear here.';
+    }
+}
+
+
+// EVENT LISTENERS
+
+document.addEventListener('input', function(event) {
+
+    if (event.target.closest('.certification-entry')) {
+        updateCertificationsPreview();
+    }
+
+    if (event.target.closest('.achievement-entry')) {
+        updateAchievementsPreview();
+    }
+
+});
+
+document.addEventListener('change', function(event) {
+
+    if (event.target.closest('.certification-entry')) {
+        updateCertificationsPreview();
+    }
+
+    if (event.target.closest('.achievement-entry')) {
+        updateAchievementsPreview();
+    }
+
+});
+
+updateCertificationsPreview();
+updateAchievementsPreview();
+// HOBBIES & INTERESTS LIVE PREVIEW
+
+function updateHobbiesPreview() {
+
+    const container = document.getElementById('preview-hobbies-list');
+    const entries = document.querySelectorAll('.hobby-entry');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+    let hasData = false;
+
+    entries.forEach((entry, index) => {
+
+        const getValue = name => {
+            const field = entry.querySelector(`[name="${name}[]"]`);
+            return field ? field.value.trim() : '';
+        };
+
+        const name = getValue('hobby_name');
+        const category = getValue('hobby_category');
+        const description = getValue('hobby_description');
+
+        if (!name && !category && !description) {
+            return;
+        }
+
+        hasData = true;
+
+        const card = document.createElement('div');
+        card.className = 'mb-3';
+
+        const heading = document.createElement('strong');
+        heading.textContent = name || `Interest ${index + 1}`;
+        card.appendChild(heading);
+
+        function addLine(value) {
+            if (!value) return;
+
+            const line = document.createElement('p');
+            line.className = 'small mb-1';
+            line.textContent = value;
+            card.appendChild(line);
+        }
+
+        addLine(category);
+        addLine(description);
+
+        container.appendChild(card);
+
+    });
+
+    if (!hasData) {
+        container.textContent = 'Your hobbies and interests will appear here.';
+    }
+}
+
+
+// EVENT LISTENERS
+
+document.addEventListener('input', function(event) {
+    if (event.target.closest('.hobby-entry')) {
+        updateHobbiesPreview();
+    }
+});
+
+document.addEventListener('change', function(event) {
+    if (event.target.closest('.hobby-entry')) {
+        updateHobbiesPreview();
+    }
+});
+
+updateHobbiesPreview();
+// RESUME TEMPLATE SWITCHER
+
+const templateSelector = document.getElementById('resume-template');
+const resumePreview = document.getElementById('resume-preview');
+
+if (templateSelector && resumePreview) {
+
+    templateSelector.addEventListener('change', function () {
+
+        const selectedTemplate = this.value;
+
+        // Remove previous template classes
+        resumePreview.classList.remove(
+            'template-modern',
+            'template-professional',
+            'template-minimal',
+            'template-creative'
+        );
+
+        // Apply selected template
+        resumePreview.classList.add('template-' + selectedTemplate);
+
+    });
+
+    // Apply default template
+    resumePreview.classList.add('template-modern');
+}
+// DOWNLOAD RESUME AS PDF
+
+const downloadButton = document.getElementById('download-resume');
+
+if (downloadButton) {
+    downloadButton.addEventListener('click', function () {
+        window.print();
+    });
+}
+
+</script>
+{% endblock %}
+
+
+

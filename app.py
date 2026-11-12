@@ -55,7 +55,9 @@ def dashboard():
         all_resumes=all_resumes,
         latest=latest_resume
     )
-
+@app.route('/create-resume')
+def create_resume():
+    return render_template('create_resume.html')
 @app.route('/upload')
 def upload():
     return render_template('upload.html')
